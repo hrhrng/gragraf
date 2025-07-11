@@ -1,0 +1,654 @@
+import { useState, useCallback } from 'react';
+import ReactFlow, {
+  Controls,
+  Background,
+  applyNodeChanges,
+  applyEdgeChanges,
+  Node,
+  Edge,
+  OnNodesChange,
+  OnEdgesChange,
+  OnConnect,
+  addEdge,
+  NodeChange,
+  EdgeChange,
+  Connection,
+  BackgroundVariant,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import { Sidebar } from './components/Sidebar';
+import { initialNodes, nodeTypes } from './nodes';
+import { NodeData } from './types';
+import RightPanel from './components/RightPanel';
+import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
+import { WorkflowListDialog } from './components/WorkflowListDialog';
+import { Button } from '@radix-ui/themes';
+import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { workflowApi, Workflow } from './services/workflowApi';
+
+// Map frontend node types to backend expected types
+const mapNodeTypeToBackend = (frontendType: string): string => {
+  const typeMapping: { [key: string]: string } = {
+    'knowledgeBase': 'knowledge_base',
+    'httpRequest': 'http_request',
+    'start': 'start',
+    'end': 'end',
+    'agent': 'agent',
+    'branch': 'branch'
+  };
+  
+  return typeMapping[frontendType] || frontendType;
+};
+
+function App() {
+  const [nodes, setNodes] = useState<Node<NodeData>[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [selectedNode, setSelectedNode] = useState<Node<NodeData> | null>(null);
+  const [result, setResult] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showRunForm, setShowRunForm] = useState(false);
+  const [startNodeInputs, setStartNodeInputs] = useState<{ name: string }[]>([]);
+  
+  // 工作流存储相关状态
+  const [currentWorkflow, setCurrentWorkflow] = useState<Workflow | null>(null);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [listDialogOpen, setListDialogOpen] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  const onNodesChange: OnNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      // Filter out deletion of start and end nodes
+      const filteredChanges = changes.filter(change => {
+        if (change.type === 'remove') {
+          const nodeToRemove = nodes.find(node => node.id === change.id);
+          if (nodeToRemove?.type === 'start' || nodeToRemove?.type === 'end') {
+            return false; // Don't allow start/end nodes to be removed
+          }
+        }
+        return true;
+      });
+      
+      setNodes((nds) => applyNodeChanges(filteredChanges, nds));
+    },
+    [setNodes, nodes]
+  );
+
+  const onEdgesChange: OnEdgesChange = useCallback(
+    (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+    [setEdges]
+  );
+
+  const onConnect: OnConnect = useCallback(
+    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges]
+  );
+
+  const onAddNode = (type: string, label: string) => {
+    const newNode: Node<NodeData> = {
+      id: `${type}_${nodes.length + 1}`,
+      type,
+      position: { 
+        x: Math.random() * 600 + 200, 
+        y: Math.random() * 400 + 200 
+      },
+      data: { 
+        label, 
+        config: {} 
+      },
+    };
+    setNodes((nds) => nds.concat(newNode));
+    
+    // Auto-select the new node
+    setSelectedNode(newNode);
+  };
+
+  const onNodeClick = (_: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  };
+  
+  const onConfigChange = (nodeId: string, newConfig: any) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId ? { ...node, data: { ...node.data, config: newConfig } } : node
+      )
+    );
+  };
+  
+  const handleRunClick = () => {
+    // 先关闭任何打开的节点配置面板
+    setSelectedNode(null);
+    
+    const startNode = nodes.find(n => n.type === 'start');
+    if (startNode) {
+      setStartNodeInputs(startNode.data.config.inputs || []);
+      setShowRunForm(true);
+    } else {
+      alert('No Start node found in the workflow.');
+    }
+  };
+
+  const handleRunSubmit = (runData: any) => {
+    onRun(runData);
+  };
+
+  const onRun = async (runData: any) => {
+    setShowRunForm(false);
+    setIsLoading(true);
+    setResult(null);
+    
+    const dsl = {
+      nodes: nodes.map(node => ({
+        id: node.id,
+        type: mapNodeTypeToBackend(node.type || 'unknown'),
+        config: node.type === 'start' ? { ...node.data.config, ...runData } : node.data.config,
+      })),
+      edges: edges.map(edge => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        source_handle: edge.sourceHandle
+      }))
+    };
+
+    // 尝试使用流式执行
+    try {
+      await executeWithStreaming(dsl);
+    } catch (streamError) {
+      console.warn('Streaming failed, falling back to regular execution:', streamError);
+      await executeRegular(dsl);
+    }
+  };
+
+  const executeWithStreaming = async (dsl: any): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let hasStarted = false;
+      
+      // 初始化结果状态
+      const initialResult = {
+        status: 'running' as const,
+        startTime: new Date().toISOString(),
+        endTime: null,
+        duration: 0,
+        nodes: [] as any[],
+        finalResult: null,
+        error: null,
+        totalNodes: nodes.length, // 使用实际的节点数量
+        completedNodes: 0,
+        globalLogs: [] as string[]
+      };
+      setResult(initialResult);
+
+      try {
+        // 使用 fetch 的 ReadableStream 来处理流式响应
+        const response = await fetch('/run/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dsl),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        if (!response.body) {
+          throw new Error('Response body is empty');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        hasStarted = true;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          
+          // 处理SSE格式的数据
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // 保留最后一行（可能不完整）
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const eventData = JSON.parse(line.slice(6));
+                console.log('SSE Event:', eventData);
+
+                // 更新结果状态
+                setResult((currentResult: any) => {
+                  if (!currentResult) return initialResult;
+                  
+                  const newResult = { ...currentResult };
+                  
+                  switch (eventData.type) {
+                    case 'start':
+                    case 'execution_started':
+                      newResult.totalNodes = eventData.data?.totalNodes || nodes.length;
+                      newResult.startTime = eventData.data?.startTime || eventData.timestamp;
+                      break;
+                      
+                    case 'progress':
+                      // 处理后端发送的进度事件
+                      if (eventData.data) {
+                        // 计算已完成的节点数量
+                        const completedNodeKeys = Object.keys(eventData.data);
+                        if (completedNodeKeys.length > 0) {
+                          newResult.completedNodes = Math.max(newResult.completedNodes, completedNodeKeys.length);
+                        }
+                        
+                        // 更新节点执行状态
+                        completedNodeKeys.forEach(nodeId => {
+                          const existingNodeIndex = newResult.nodes.findIndex((n: any) => n.id === nodeId);
+                          const nodeData = {
+                            id: nodeId,
+                            type: nodeId.includes('agent') ? 'agent' : nodeId.includes('start') ? 'start' : nodeId.includes('end') ? 'end' : 'unknown',
+                            status: 'completed',
+                            startTime: eventData.timestamp,
+                            endTime: eventData.timestamp,
+                            duration: 0,
+                            result: eventData.data[nodeId],
+                            error: null,
+                            logs: []
+                          };
+                          
+                          if (existingNodeIndex >= 0) {
+                            newResult.nodes[existingNodeIndex] = nodeData;
+                          } else {
+                            newResult.nodes.push(nodeData);
+                          }
+                        });
+                      }
+                      break;
+                      
+                    case 'complete':
+                    case 'execution_completed':
+                    case 'execution_finished':
+                      newResult.status = 'completed';
+                      newResult.endTime = eventData.timestamp;
+                      newResult.finalResult = eventData.result || eventData.data?.result;
+                      newResult.completedNodes = newResult.totalNodes; // 设置为全部完成
+                      if (newResult.startTime && newResult.endTime) {
+                        const start = new Date(newResult.startTime);
+                        const end = new Date(newResult.endTime);
+                        newResult.duration = end.getTime() - start.getTime();
+                      }
+                      break;
+                      
+                    case 'error':
+                    case 'execution_failed':
+                      newResult.status = 'failed';
+                      newResult.endTime = eventData.timestamp;
+                      newResult.error = eventData.data?.error || eventData.error;
+                      if (newResult.startTime && newResult.endTime) {
+                        const start = new Date(newResult.startTime);
+                        const end = new Date(newResult.endTime);
+                        newResult.duration = end.getTime() - start.getTime();
+                      }
+                      break;
+                  }
+                  
+                  return newResult;
+                });
+              } catch (error) {
+                console.error('Error parsing SSE event:', error);
+              }
+            }
+          }
+        }
+
+        setIsLoading(false);
+        resolve();
+      } catch (error) {
+        console.error('Streaming error:', error);
+        setIsLoading(false);
+        if (!hasStarted) {
+          reject(error);
+        } else {
+          // 如果已经开始但中途失败，设置错误状态
+          setResult((currentResult: any) => currentResult ? {
+            ...currentResult,
+            status: 'failed',
+            endTime: new Date().toISOString(),
+            error: 'Connection lost during execution'
+          } : null);
+          resolve();
+        }
+      }
+    });
+  };
+
+  const executeRegular = async (dsl: any) => {
+    try {
+      const startTime = new Date().toISOString();
+      const response = await fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dsl),
+      });
+      const data = await response.json();
+      const endTime = new Date().toISOString();
+      
+      // Transform the backend response to match our new format
+      const transformedResult = {
+        status: data.status === 'success' ? 'completed' : (data.status === 'error' ? 'failed' : 'completed'),
+        startTime: data.startTime || startTime,
+        endTime: data.endTime || endTime,
+        duration: data.duration || (new Date(endTime).getTime() - new Date(startTime).getTime()),
+        nodes: data.nodes || [],
+        finalResult: data.result || data.finalResult || data, // 优先使用data.result，然后data.finalResult，最后回退到整个data
+        error: data.error,
+        totalNodes: data.totalNodes || nodes.length,
+        completedNodes: data.completedNodes || (data.error ? 0 : nodes.length),
+        globalLogs: data.globalLogs || []
+      };
+      
+      setResult(transformedResult);
+    } catch (error) {
+      console.error('Error running workflow:', error);
+      const errorResult = {
+        status: 'failed' as const,
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        duration: 0,
+        nodes: [],
+        finalResult: null,
+        error: 'Failed to execute workflow: ' + (error as Error).message,
+        totalNodes: nodes.length,
+        completedNodes: 0,
+        globalLogs: []
+      };
+      setResult(errorResult);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    const startNode = nodes.find(n => n.type === 'start');
+    if (startNode) {
+      setStartNodeInputs(startNode.data.config.inputs || []);
+      setShowRunForm(true);
+    }
+  };
+
+  const handleRunCancel = () => {
+    setShowRunForm(false);
+  };
+
+  // Deselect node when clicking on empty space
+  const onPaneClick = () => {
+    setSelectedNode(null);
+    // 关闭运行工作流面板（如果打开的话）
+    setShowRunForm(false);
+    // 清除工作流执行结果面板
+    setResult(null);
+  };
+
+  // 工作流存储功能
+  const getCurrentDSL = () => ({
+    nodes: nodes.map(node => ({
+      id: node.id,
+      type: mapNodeTypeToBackend(node.type || 'unknown'),
+      config: node.data.config,
+      position: node.position
+    })),
+    edges: edges.map(edge => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      source_handle: edge.sourceHandle
+    }))
+  });
+
+  const handleSaveWorkflow = async (data: { name: string; description?: string; tags: string[] }) => {
+    setSaveLoading(true);
+    try {
+      const dsl = getCurrentDSL();
+      
+      if (currentWorkflow) {
+        // 更新现有工作流
+        const updatedWorkflow = await workflowApi.updateWorkflowDefinition(currentWorkflow.id, dsl);
+        if (data.name !== currentWorkflow.name || data.description !== currentWorkflow.description || 
+            JSON.stringify(data.tags) !== JSON.stringify(currentWorkflow.tags)) {
+          await workflowApi.updateWorkflowMetadata(currentWorkflow.id, {
+            name: data.name,
+            description: data.description,
+            tags: data.tags
+          });
+        }
+        setCurrentWorkflow({ ...updatedWorkflow, name: data.name, description: data.description, tags: data.tags });
+      } else {
+        // 创建新工作流
+        const newWorkflow = await workflowApi.createWorkflow({
+          name: data.name,
+          description: data.description,
+          dsl,
+          tags: data.tags
+        });
+        setCurrentWorkflow(newWorkflow);
+      }
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handleLoadWorkflow = (workflow: Workflow) => {
+    // 加载工作流的DSL到画布，优先使用definition，回退到dsl
+    const dsl = workflow.definition || workflow.dsl;
+    
+    // 创建反向映射
+    const reverseTypeMapping: { [key: string]: string } = {
+      'knowledge_base': 'knowledgeBase',
+      'http_request': 'httpRequest',
+      'start': 'start',
+      'end': 'end',
+      'agent': 'agent',
+      'branch': 'branch'
+    };
+    
+    if (dsl && dsl.nodes) {
+      const loadedNodes = dsl.nodes.map((node: any) => ({
+        id: node.id,
+        type: reverseTypeMapping[node.type] || node.type,
+        position: node.position || { x: Math.random() * 400, y: Math.random() * 300 },
+        data: {
+          label: node.config?.label || node.type,
+          config: node.config || {}
+        }
+      }));
+      setNodes(loadedNodes);
+    }
+    
+    if (dsl && dsl.edges) {
+      const loadedEdges = dsl.edges.map((edge: any) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.source_handle
+      }));
+      setEdges(loadedEdges);
+    }
+    
+    // 创建带有dsl字段的工作流对象，供前端使用
+    const workflowWithDsl = {
+      ...workflow,
+      dsl: dsl
+    };
+    
+    setCurrentWorkflow(workflowWithDsl);
+    setSelectedNode(null);
+    setResult(null);
+  };
+
+  const handleNewWorkflow = () => {
+    setNodes(initialNodes);
+    setEdges([]);
+    setCurrentWorkflow(null);
+    setSelectedNode(null);
+    setResult(null);
+  };
+
+  return (
+    <div className="flex h-screen w-screen bg-[var(--color-bg-primary)] overflow-hidden">
+      <Sidebar 
+        onAddNode={onAddNode} 
+        nodes={nodes}
+      />
+      
+      <div className="flex-1 relative">
+        {/* Flow Area */}
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
+          nodeTypes={nodeTypes}
+          fitView
+          className="bg-[var(--color-bg-primary)]"
+          minZoom={0.1}
+          maxZoom={2}
+          defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background 
+            variant={BackgroundVariant.Dots} 
+            gap={20} 
+            size={1}
+            color="var(--color-border-primary)"
+          />
+          <Controls 
+            className="bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg shadow-lg"
+          />
+        </ReactFlow>
+
+        {/* Floating help text when no nodes selected */}
+        {!selectedNode && nodes.length <= 2 && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+            <div className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm border border-[var(--color-border-primary)] rounded-xl p-8 max-w-md">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Welcome to GraGraf
+              </h3>
+              <p className="text-[var(--color-text-secondary)] leading-relaxed">
+                Start building your workflow by adding nodes from the sidebar. 
+                Connect them together to create powerful automation flows.
+              </p>
+              <div className="mt-4 text-sm text-[var(--color-text-secondary)]">
+                💡 Tip: Click on any node to configure its settings
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Workflow management and stats */}
+        <div className="absolute top-4 right-4 flex flex-col gap-3">
+          {/* 工作流管理按钮 */}
+          <div className="flex gap-2">
+            <Button
+              size="2"
+              variant="soft"
+              onClick={handleNewWorkflow}
+              className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+            >
+              新建
+            </Button>
+            <Button
+              size="2"
+              variant="soft"
+              onClick={() => setSaveDialogOpen(true)}
+              className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+            >
+              <BookmarkIcon className="w-4 h-4 mr-1" />
+              保存
+            </Button>
+            <Button
+              size="2"
+              variant="soft"
+              onClick={() => setListDialogOpen(true)}
+              className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+            >
+              <MagnifyingGlassIcon className="w-4 h-4 mr-1" />
+              管理
+            </Button>
+          </div>
+
+          {/* 当前工作流信息 */}
+          {currentWorkflow && (
+            <div className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm border border-[var(--color-border-primary)] rounded-lg px-3 py-2">
+              <div className="text-sm">
+                <div className="text-white font-medium truncate max-w-48">
+                  {currentWorkflow.name}
+                </div>
+                <div className="text-[var(--color-text-secondary)] text-xs">
+                  v{currentWorkflow.version} • {currentWorkflow.status}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Workflow stats */}
+          <div className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm border border-[var(--color-border-primary)] rounded-lg px-4 py-2">
+            <div className="flex items-center gap-4 text-sm">
+              <span className="text-[var(--color-text-secondary)]">
+                Nodes: <span className="text-white font-medium">{nodes.length}</span>
+              </span>
+              <span className="text-[var(--color-text-secondary)]">
+                Connections: <span className="text-white font-medium">{edges.length}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <RightPanel 
+        nodes={nodes}
+        edges={edges}
+        selectedNode={selectedNode} 
+        onConfigChange={onConfigChange}
+        result={result}
+        isLoading={isLoading}
+        onRetry={handleRetry}
+        showRunForm={showRunForm}
+        runFormInputs={startNodeInputs}
+        onRunSubmit={handleRunSubmit}
+        onRunCancel={handleRunCancel}
+      />
+      
+      {/* Bottom Run Button */}
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <Button 
+          onClick={handleRunClick}
+          size="3"
+          className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0 font-medium shadow-xl hover:shadow-2xl transition-all duration-200 px-8"
+        >
+          <PlayIcon className="w-4 h-4 mr-2" />
+          Run Workflow
+        </Button>
+      </div>
+
+      {/* 工作流存储对话框 */}
+      <SaveWorkflowDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
+        onSave={handleSaveWorkflow}
+        currentWorkflowName={currentWorkflow?.name || ''}
+        isLoading={saveLoading}
+      />
+
+      <WorkflowListDialog
+        open={listDialogOpen}
+        onOpenChange={setListDialogOpen}
+        onLoadWorkflow={handleLoadWorkflow}
+      />
+
+    </div>
+  );
+}
+
+export default App;
