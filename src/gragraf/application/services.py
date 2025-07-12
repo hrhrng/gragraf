@@ -140,11 +140,19 @@ class WorkflowApplicationService:
             
         Raises:
             ValueError: If workflow not found
+            DuplicateWorkflowError: If name conflicts with another workflow
         """
         async with self._repository_factory.create_unit_of_work() as uow:
             workflow = await uow.workflows.find_by_id(workflow_id)
             if not workflow:
                 raise ValueError(f"Workflow {workflow_id} not found")
+            
+            # Check for name conflicts if name is being changed
+            if name is not None and name != workflow.metadata.name:
+                existing_workflow = await uow.workflows.find_by_name(name)
+                if existing_workflow is not None and existing_workflow.id != workflow_id:
+                    from ..domain.repositories import DuplicateWorkflowError
+                    raise DuplicateWorkflowError(name)
             
             updated_workflow = workflow.update_metadata(
                 name=name,

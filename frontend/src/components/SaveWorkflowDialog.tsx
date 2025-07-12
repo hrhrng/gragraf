@@ -22,6 +22,7 @@ export const SaveWorkflowDialog: React.FC<SaveWorkflowDialogProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
   const [error, setError] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,10 +42,10 @@ export const SaveWorkflowDialog: React.FC<SaveWorkflowDialogProps> = ({
       });
       
       // 重置表单
-      setName('');
       setDescription('');
       setTags([]);
       setNewTag('');
+      setShowAdvanced(false);
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存失败');
@@ -70,8 +71,21 @@ export const SaveWorkflowDialog: React.FC<SaveWorkflowDialogProps> = ({
     }
   };
 
+  const handleDialogClose = (newOpen: boolean) => {
+    if (!newOpen) {
+      // 重置表单状态（保留工作流名称）
+      setName(currentWorkflowName);
+      setDescription('');
+      setTags([]);
+      setNewTag('');
+      setShowAdvanced(false);
+      setError('');
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={open} onOpenChange={handleDialogClose}>
       <Dialog.Content maxWidth="500px">
         <Dialog.Title>保存工作流</Dialog.Title>
 
@@ -95,60 +109,78 @@ export const SaveWorkflowDialog: React.FC<SaveWorkflowDialogProps> = ({
               />
             </Flex>
 
+            {/* 高级选项折叠 */}
             <Flex direction="column" gap="2">
-              <Text as="label" size="2" weight="medium">
-                描述
-              </Text>
-              <TextField.Root
-                value={description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
-                placeholder="输入工作流描述（可选）"
+              <Button
+                type="button"
+                variant="ghost"
+                size="1"
+                onClick={() => setShowAdvanced(!showAdvanced)}
                 disabled={isLoading}
-              />
-            </Flex>
-
-            <Flex direction="column" gap="2">
-              <Text as="label" size="2" weight="medium">
-                标签
-              </Text>
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {showAdvanced ? '隐藏高级选项' : '显示高级选项'}
+              </Button>
               
-              {tags.length > 0 && (
-                <Flex gap="2" wrap="wrap">
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="soft" color="blue">
-                      {tag}
-                      <IconButton
-                        size="1"
-                        variant="ghost"
-                        onClick={() => removeTag(tag)}
+              {showAdvanced && (
+                <Flex direction="column" gap="3">
+                  <Flex direction="column" gap="2">
+                    <Text as="label" size="2" weight="medium">
+                      描述（可选）
+                    </Text>
+                    <TextField.Root
+                      value={description}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
+                      placeholder="为工作流添加描述"
+                      disabled={isLoading}
+                    />
+                  </Flex>
+
+                  <Flex direction="column" gap="2">
+                    <Text as="label" size="2" weight="medium">
+                      标签（可选）
+                    </Text>
+                    
+                    {tags.length > 0 && (
+                      <Flex gap="2" wrap="wrap">
+                        {tags.map((tag) => (
+                          <Badge key={tag} variant="soft" color="blue">
+                            {tag}
+                            <IconButton
+                              size="1"
+                              variant="ghost"
+                              onClick={() => removeTag(tag)}
+                              disabled={isLoading}
+                              style={{ marginLeft: '4px' }}
+                            >
+                              <Cross1Icon width="10" height="10" />
+                            </IconButton>
+                          </Badge>
+                        ))}
+                      </Flex>
+                    )}
+
+                    <Flex gap="2">
+                      <TextField.Root 
+                        style={{ flex: 1 }}
+                        value={newTag}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTag(e.target.value)}
+                        onKeyDown={handleTagKeyPress}
+                        placeholder="添加标签"
                         disabled={isLoading}
-                        style={{ marginLeft: '4px' }}
+                      />
+                      <IconButton
+                        type="button"
+                        onClick={addTag}
+                        disabled={!newTag.trim() || isLoading}
+                        variant="soft"
                       >
-                        <Cross1Icon width="10" height="10" />
+                        <PlusIcon />
                       </IconButton>
-                    </Badge>
-                  ))}
+                    </Flex>
+                  </Flex>
                 </Flex>
               )}
-
-              <Flex gap="2">
-                <TextField.Root 
-                  style={{ flex: 1 }}
-                  value={newTag}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTag(e.target.value)}
-                  onKeyDown={handleTagKeyPress}
-                  placeholder="添加标签"
-                  disabled={isLoading}
-                />
-                <IconButton
-                  type="button"
-                  onClick={addTag}
-                  disabled={!newTag.trim() || isLoading}
-                  variant="soft"
-                >
-                  <PlusIcon />
-                </IconButton>
-              </Flex>
             </Flex>
 
             <Flex gap="3" justify="end" mt="4">
@@ -156,7 +188,7 @@ export const SaveWorkflowDialog: React.FC<SaveWorkflowDialogProps> = ({
                 type="button"
                 variant="soft"
                 color="gray"
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleDialogClose(false)}
                 disabled={isLoading}
               >
                 取消

@@ -23,7 +23,7 @@ import RightPanel from './components/RightPanel';
 import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
 import { WorkflowListDialog } from './components/WorkflowListDialog';
 import { Button } from '@radix-ui/themes';
-import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon } from '@radix-ui/react-icons';
 import { workflowApi, Workflow } from './services/workflowApi';
 
 // Map frontend node types to backend expected types
@@ -54,6 +54,14 @@ function App() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [listDialogOpen, setListDialogOpen] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  
+  // 全局错误状态
+  const [globalError, setGlobalError] = useState<string>('');
+  const [showGlobalError, setShowGlobalError] = useState(false);
+  
+  // 全局成功提示状态
+  const [globalSuccess, setGlobalSuccess] = useState<string>('');
+  const [showGlobalSuccess, setShowGlobalSuccess] = useState(false);
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -404,6 +412,52 @@ function App() {
     }))
   });
 
+  // 带重试的元数据更新
+  const updateWorkflowMetadataWithRetry = async (workflowId: string, metadata: { name: string; description?: string; tags: string[] }) => {
+    try {
+      return await workflowApi.updateWorkflowMetadata(workflowId, metadata);
+    } catch (error) {
+      if (error instanceof Error) {
+        // 名称冲突：直接报错，不重试
+        if (error.message.includes('already exists')) {
+          throw new Error('工作流名称已存在，请使用其他名称');
+        }
+        // 版本冲突：获取最新版本后重试一次
+        if (error.message.includes('版本冲突')) {
+          const latestWorkflow = await workflowApi.getWorkflowById(workflowId);
+          return await workflowApi.updateWorkflowMetadata(latestWorkflow.id, metadata);
+        }
+      }
+      throw error;
+    }
+  };
+
+  // 带重试的定义更新
+  const updateWorkflowDefinitionWithRetry = async (workflowId: string, dsl: any) => {
+    try {
+      return await workflowApi.updateWorkflowDefinition(workflowId, dsl);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('版本冲突')) {
+        // 版本冲突：获取最新版本后重试一次
+        const latestWorkflow = await workflowApi.getWorkflowById(workflowId);
+        return await workflowApi.updateWorkflowDefinition(latestWorkflow.id, dsl);
+      }
+      throw error;
+    }
+  };
+
+  // 快速保存现有工作流
+  const handleQuickSave = async () => {
+    if (!currentWorkflow) return;
+    
+    // 直接使用当前工作流的名称、描述和标签
+    await handleSaveWorkflow({
+      name: currentWorkflow.name,
+      description: currentWorkflow.description,
+      tags: currentWorkflow.tags || []
+    });
+  };
+
   const handleSaveWorkflow = async (data: { name: string; description?: string; tags: string[] }) => {
     setSaveLoading(true);
     try {
@@ -411,15 +465,24 @@ function App() {
       
       if (currentWorkflow) {
         // 更新现有工作流
-        const updatedWorkflow = await workflowApi.updateWorkflowDefinition(currentWorkflow.id, dsl);
-        if (data.name !== currentWorkflow.name || data.description !== currentWorkflow.description || 
-            JSON.stringify(data.tags) !== JSON.stringify(currentWorkflow.tags)) {
-          await workflowApi.updateWorkflowMetadata(currentWorkflow.id, {
+        let updatedWorkflow = currentWorkflow;
+        
+        // 检查是否需要更新元数据
+        const metadataChanged = data.name !== currentWorkflow.name || 
+                              data.description !== currentWorkflow.description || 
+                              JSON.stringify(data.tags) !== JSON.stringify(currentWorkflow.tags);
+        
+        if (metadataChanged) {
+          updatedWorkflow = await updateWorkflowMetadataWithRetry(currentWorkflow.id, {
             name: data.name,
             description: data.description,
             tags: data.tags
           });
         }
+        
+        // 更新定义（总是需要更新，因为用户可能修改了画布）
+        updatedWorkflow = await updateWorkflowDefinitionWithRetry(updatedWorkflow.id, dsl);
+        
         setCurrentWorkflow({ ...updatedWorkflow, name: data.name, description: data.description, tags: data.tags });
       } else {
         // 创建新工作流
@@ -431,6 +494,44 @@ function App() {
         });
         setCurrentWorkflow(newWorkflow);
       }
+      
+      // 显示成功提示
+      setGlobalSuccess('工作流保存成功');
+      setShowGlobalSuccess(true);
+      
+      // 3秒后自动关闭成功提示
+      setTimeout(() => {
+        setShowGlobalSuccess(false);
+      }, 3000);
+      
+    } catch (error) {
+      console.error('保存工作流失败:', error);
+      
+      // 显示友好的错误消息
+      let errorMessage = '保存工作流失败';
+      if (error instanceof Error) {
+        if (error.message.includes('版本冲突')) {
+          errorMessage = '保存失败：工作流已被其他操作修改，请重新尝试';
+        } else if (error.message.includes('名称已存在')) {
+          errorMessage = '保存失败：工作流名称已存在，请使用其他名称';
+        } else if (error.message.includes('already exists')) {
+          errorMessage = '保存失败：工作流名称已存在，请使用其他名称';
+        } else if (error.message.includes('网络')) {
+          errorMessage = '保存失败：网络连接问题，请检查网络后重试';
+        } else {
+          errorMessage = `保存失败：${error.message}`;
+        }
+      }
+      
+      setGlobalError(errorMessage);
+      setShowGlobalError(true);
+      
+      // 3秒后自动关闭错误提示
+      setTimeout(() => {
+        setShowGlobalError(false);
+      }, 3000);
+      
+      throw error; // 让组件处理错误显示
     } finally {
       setSaveLoading(false);
     }
@@ -558,15 +659,41 @@ function App() {
             >
               新建
             </Button>
-            <Button
-              size="2"
-              variant="soft"
-              onClick={() => setSaveDialogOpen(true)}
-              className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-            >
-              <BookmarkIcon className="w-4 h-4 mr-1" />
-              保存
-            </Button>
+            
+            {/* 如果是现有工作流，显示快速保存和另存为按钮 */}
+            {currentWorkflow ? (
+              <>
+                <Button
+                  size="2"
+                  variant="soft"
+                  onClick={handleQuickSave}
+                  disabled={saveLoading}
+                  className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+                >
+                  <BookmarkIcon className="w-4 h-4 mr-1" />
+                  {saveLoading ? '保存中...' : '保存'}
+                </Button>
+                <Button
+                  size="2"
+                  variant="outline"
+                  onClick={() => setSaveDialogOpen(true)}
+                  className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+                >
+                  另存为
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="2"
+                variant="soft"
+                onClick={() => setSaveDialogOpen(true)}
+                className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+              >
+                <BookmarkIcon className="w-4 h-4 mr-1" />
+                保存
+              </Button>
+            )}
+            
             <Button
               size="2"
               variant="soft"
@@ -646,6 +773,54 @@ function App() {
         onOpenChange={setListDialogOpen}
         onLoadWorkflow={handleLoadWorkflow}
       />
+
+      {/* 全局错误提示 */}
+      {showGlobalError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
+          <div className="bg-red-500/90 backdrop-blur-sm border border-red-400 rounded-lg px-6 py-4 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center">
+                <span className="text-white text-sm font-bold">!</span>
+              </div>
+              <div>
+                <span className="text-white font-medium">
+                  {globalError}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowGlobalError(false)}
+                className="ml-auto text-white hover:text-red-200 transition-colors"
+              >
+                <Cross1Icon className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 全局成功提示 */}
+      {showGlobalSuccess && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
+          <div className="bg-green-500/90 backdrop-blur-sm border border-green-400 rounded-lg px-6 py-4 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center">
+                <span className="text-white text-sm font-bold">✓</span>
+              </div>
+              <div>
+                <span className="text-white font-medium">
+                  {globalSuccess}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowGlobalSuccess(false)}
+                className="ml-auto text-white hover:text-green-200 transition-colors"
+              >
+                <Cross1Icon className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

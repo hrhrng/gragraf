@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 
 from ..domain.value_objects import WorkflowId, WorkflowStatus
-from ..domain.repositories import DuplicateWorkflowError
+from ..domain.repositories import DuplicateWorkflowError, WorkflowConflictError
 from ..application.services import WorkflowApplicationService
 from ..infrastructure.repositories import RepositoryFactory
 
@@ -186,6 +186,8 @@ async def update_workflow_definition(
         wf_id = WorkflowId.from_string(workflow_id)
         workflow = await service.update_workflow_definition(wf_id, request.dsl)
         return _workflow_to_response(workflow)
+    except WorkflowConflictError as e:
+        raise HTTPException(status_code=409, detail=f"版本冲突：工作流已被其他操作修改，请刷新后重试。{str(e)}")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -206,6 +208,10 @@ async def update_workflow_metadata(
             tags=request.tags
         )
         return _workflow_to_response(workflow)
+    except DuplicateWorkflowError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except WorkflowConflictError as e:
+        raise HTTPException(status_code=409, detail=f"版本冲突：工作流已被其他操作修改，请刷新后重试。{str(e)}")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

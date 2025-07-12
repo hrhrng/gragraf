@@ -8,6 +8,8 @@ from .nodes.http_request import HttpRequestNode, HttpRequestConfig
 from .nodes.branch import BranchNode, BranchConfig
 from .nodes.knowledge_base import KnowledgeBaseNode, KnowledgeBaseConfig
 from .nodes.agent import AgentNode, AgentConfig
+from .nodes.start import StartNode
+from .nodes.end import EndNode
 
 import operator
 import logging
@@ -86,9 +88,10 @@ class GraphCompiler:
         elif node_type == NodeType.AGENT:
             config = AgentConfig.model_validate(node_config.config)
             return AgentNode(node_id, config)
-        elif node_type in [NodeType.START, NodeType.END]:
-            # These nodes don't have a class instance, they are just for structure
-            return None
+        elif node_type == NodeType.START:
+            return StartNode(node_id, node_config.config)
+        elif node_type == NodeType.END:
+            return EndNode(node_id, node_config.config)
         else:
             raise ValueError(f"Unsupported node type: {node_type}")
 
@@ -190,31 +193,12 @@ class GraphCompiler:
         print(f"✓ Found start node: {start_node_id}")
         print(f"✓ Found end node: {end_node_id}")
 
-        # Helper functions to create proper closures for passthrough nodes
-        def create_passthrough(nid):
-            def passthrough_func(state):
-                # Passthrough nodes return empty updates - they just forward data
-                return {}
-            return passthrough_func
-
         # Add all nodes to the graph
         for node_id, node_config in self.nodes.items():
-            if node_config.type == NodeType.START:
-                # Start nodes are pass-through nodes that just forward the state
-                workflow.add_node(node_id, create_passthrough(node_id))
-            elif node_config.type == NodeType.END:
-                # End nodes are also pass-through nodes
-                workflow.add_node(node_id, create_passthrough(node_id))
-            elif node_config.type == NodeType.BRANCH:
-                # Branch nodes need special handling for LangGraph
-                instance = self._create_node_instance(node_id)
-                self.node_instances[node_id] = instance
-                workflow.add_node(node_id, instance.execute)
-            else:
-                # Create actual node instances for processing nodes
-                instance = self._create_node_instance(node_id)
-                self.node_instances[node_id] = instance
-                workflow.add_node(node_id, instance.execute)
+            # Create node instances for all node types
+            instance = self._create_node_instance(node_id)
+            self.node_instances[node_id] = instance
+            workflow.add_node(node_id, instance.execute)
         
         # Set the single start node as entry point
         workflow.set_entry_point(start_node_id)

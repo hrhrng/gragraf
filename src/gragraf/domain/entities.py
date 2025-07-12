@@ -117,7 +117,7 @@ class Workflow:
         tags: Optional[List[str]] = None
     ) -> 'Workflow':
         """
-        Update workflow metadata.
+        Update workflow metadata and increment version.
         
         Args:
             name: New name (optional)
@@ -130,7 +130,7 @@ class Workflow:
         new_metadata = WorkflowMetadata(
             name=name if name is not None else self.metadata.name,
             description=description if description is not None else self.metadata.description,
-            version=self.metadata.version,
+            version=self.metadata.version + 1,
             tags=tuple(tags) if tags is not None else self.metadata.tags,
             created_at=self.metadata.created_at,
             updated_at=datetime.now(timezone.utc),
