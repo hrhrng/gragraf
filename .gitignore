@@ -9,3 +9,8 @@ wheels/
 # Virtual environments
 .venv
 workflows.db
+
+# Logs
+logs/
+
+node_modules/
