@@ -54,19 +54,6 @@ const getAvailableVariables = (nodeId: string, nodes: Node[], edges: Edge[]): st
   return Array.from(allVariables);
 };
 
-const getNodeTypeInfo = (nodeType: string | undefined) => {
-  const nodeTypeMap: Record<string, { color: string; description: string }> = {
-    start: { color: 'green', description: 'Workflow entry point' },
-    end: { color: '#d94224', description: 'Workflow exit point' },
-    httpRequest: { color: 'blue', description: 'HTTP API calls' },
-    agent: { color: 'violet', description: 'AI agent processing' },
-    knowledgeBase: { color: 'cyan', description: 'Knowledge base queries' },
-    branch: { color: 'yellow', description: 'Conditional branching' },
-    humanInLoop: { color: 'orange', description: 'Human approval required' },
-  };
-  return nodeTypeMap[nodeType || ''] || { color: 'gray', description: 'Node configuration' };
-};
-
 const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, onConfigChange }) => {
   if (!selectedNode) {
     return (
@@ -91,27 +78,10 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
   };
 
   const availableVariables = getAvailableVariables(selectedNode.id, nodes, edges);
-  const nodeInfo = getNodeTypeInfo(selectedNode.type);
 
   return (
     <div className="w-96 bg-[var(--color-bg-secondary)] border-l border-[var(--color-border-primary)] flex flex-col h-full animate-fade-in">
-      {/* 移除Header部分，直接渲染可用变量和配置表单 */}
-      {availableVariables.length > 0 && (
-        <div className="p-6 border-b border-[var(--color-border-primary)]">
-          <Text size="2" weight="medium" className="text-white mb-3 block">
-            Available Variables
-          </Text>
-          <div className="flex flex-wrap gap-1">
-            {availableVariables.map((variable) => (
-              <Badge key={variable} size="1" variant="soft" color="gray">
-                <Text size="1" className="font-mono">{variable}</Text>
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Configuration Form */}
+      {/* Configuration Form - 统一的配置表单会处理所有样式和变量显示 */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 space-y-6">
           {selectedNode.type === 'start' && (
@@ -138,7 +108,6 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
               availableVariables={availableVariables}
             />
           )}
-
           {selectedNode.type === 'knowledgeBase' && (
             <KnowledgeBaseConfigForm
               node={selectedNode}

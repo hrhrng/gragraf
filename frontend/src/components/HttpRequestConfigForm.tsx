@@ -1,24 +1,21 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { Node } from 'reactflow';
-import { NodeData } from '../types';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { useEffect } from 'react';
-import { VariablePicker } from './VariablePicker';
+import { NodeData } from '../types';
+import { ConfigFormBase, ConfigSection } from './common/ConfigFormBase';
 import { 
-  Text, 
-  TextField, 
-  Select, 
-  Switch, 
-  Button, 
-  Card, 
-  Flex, 
-  Box,
-  Badge,
-  TextArea,
-  Separator
-} from '@radix-ui/themes';
-import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
+  ConfigTextField, 
+  ConfigTextAreaField,
+  ConfigSelectField,
+  ConfigDynamicListField 
+} from './common/ConfigFormFields';
+import { 
+  GlobeIcon, 
+  GearIcon, 
+  LockClosedIcon,
+  TimerIcon 
+} from '@radix-ui/react-icons';
+import { Flex } from '@radix-ui/themes';
 
 interface HttpRequestConfigFormProps {
   node: Node<NodeData>;
@@ -44,437 +41,265 @@ interface FormData {
   user_agent: string;
 }
 
-type FormField = keyof FormData;
-
 export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({
   node,
   onConfigChange,
-  availableVariables,
+  availableVariables
 }) => {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showHeaders, setShowHeaders] = useState(false);
-  const [showParams, setShowParams] = useState(false);
-  const [showRetry, setShowRetry] = useState(false);
-
-  const { register, control, watch, reset, setValue } = useForm<FormData>({
+  const { control, register, setValue, watch, reset } = useForm<FormData>({
     defaultValues: {
-      method: node.data.config.method || 'GET',
-      url: node.data.config.url || '',
-      output_name: node.data.config.output_name || '',
-      headersList: node.data.config.headersList || [],
-      paramsList: node.data.config.paramsList || [],
-      timeout: node.data.config.timeout || 30,
-      max_retries: node.data.config.max_retries || 3,
-      retry_delay: node.data.config.retry_delay || 1,
-      response_type: node.data.config.response_type || 'auto',
-      user_agent: node.data.config.user_agent || '',
+      method: node.data.config?.method || 'GET',
+      url: node.data.config?.url || '',
+      output_name: node.data.config?.output_name || '',
+      headersList: node.data.config?.headers ? 
+        Object.entries(node.data.config.headers).map(([key, value]) => ({ key, value: String(value) })) : [],
+      paramsList: node.data.config?.params ? 
+        Object.entries(node.data.config.params).map(([key, value]) => ({ key, value: String(value) })) : [],
+      timeout: node.data.config?.timeout || 30,
+      max_retries: node.data.config?.max_retries || 3,
+      retry_delay: node.data.config?.retry_delay || 1,
+      response_type: node.data.config?.response_type || 'auto',
+      user_agent: node.data.config?.user_agent || '',
     },
   });
 
-  const { fields: headersFields, append: appendHeader, remove: removeHeader } = useFieldArray({
+  const { fields: headerFields, append: appendHeader, remove: removeHeader } = useFieldArray({
     control,
     name: 'headersList',
   });
 
-  const { fields: paramsFields, append: appendParam, remove: removeParam } = useFieldArray({
+  const { fields: paramFields, append: appendParam, remove: removeParam } = useFieldArray({
     control,
     name: 'paramsList',
   });
 
   useEffect(() => {
-    reset({
-      method: node.data.config.method || 'GET',
-      url: node.data.config.url || '',
-      output_name: node.data.config.output_name || '',
-      headersList: node.data.config.headersList || [],
-      paramsList: node.data.config.paramsList || [],
-      timeout: node.data.config.timeout || 30,
-      max_retries: node.data.config.max_retries || 3,
-      retry_delay: node.data.config.retry_delay || 1,
-      response_type: node.data.config.response_type || 'auto',
-      user_agent: node.data.config.user_agent || '',
+    const subscription = watch((data) => {
+      const config = {
+        method: data.method,
+        url: data.url,
+        output_name: data.output_name,
+        headers: data.headersList?.reduce((acc: any, header) => {
+          if (header?.key && header?.value) {
+            acc[header.key] = header.value;
+          }
+          return acc;
+        }, {}) || {},
+        params: data.paramsList?.reduce((acc: any, param) => {
+          if (param?.key && param?.value) {
+            acc[param.key] = param.value;
+          }
+          return acc;
+        }, {}) || {},
+        timeout: data.timeout,
+        max_retries: data.max_retries,
+        retry_delay: data.retry_delay,
+        response_type: data.response_type,
+        user_agent: data.user_agent,
+      };
+      onConfigChange(config);
     });
-  }, [node, reset]);
 
-  // Debounced config update to reduce re-renders
-  const debouncedConfigUpdate = useMemo(() => {
-    let timeoutId: NodeJS.Timeout;
-    return () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        onConfigChange(watch());
-      }, 300); // 300ms debounce
-    };
-  }, [onConfigChange, watch]);
+    return () => subscription.unsubscribe();
+  }, [watch, onConfigChange]);
 
-  const handleConfigUpdate = useCallback(() => {
-    debouncedConfigUpdate();
-  }, [debouncedConfigUpdate]);
+  const handleVariableSelect = (field: keyof FormData, variable: string) => {
+    const currentValue = watch(field) as string;
+    const newValue = currentValue + `{{${variable}}}`;
+    setValue(field, newValue);
+  };
 
-  const handleVariableSelect = useCallback((variable: string, field: FormField) => {
-    const currentValue = watch(field) || '';
-    setValue(field, `${currentValue} ${variable}`.trim(), { shouldDirty: true });
-    handleConfigUpdate();
-  }, [watch, setValue, handleConfigUpdate]);
+  const methodOptions = [
+    { value: 'GET', label: 'GET' },
+    { value: 'POST', label: 'POST' },
+    { value: 'PUT', label: 'PUT' },
+    { value: 'DELETE', label: 'DELETE' },
+    { value: 'PATCH', label: 'PATCH' },
+    { value: 'HEAD', label: 'HEAD' },
+    { value: 'OPTIONS', label: 'OPTIONS' },
+  ];
+
+  const responseTypeOptions = [
+    { value: 'auto', label: '自动检测' },
+    { value: 'json', label: 'JSON' },
+    { value: 'text', label: '纯文本' },
+    { value: 'binary', label: '二进制' },
+  ];
 
   return (
-    <div className="space-y-6">
+    <ConfigFormBase
+      title="HTTP Request Configuration"
+      nodeType="httpRequest"
+      availableVariables={availableVariables}
+    >
       {/* Basic Configuration */}
-      <Card className="bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)]">
-        <div className="p-4 space-y-4">
-          {/* Method Selection */}
-          <div>
-            <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              请求方法
-            </Text>
-            <Select.Root defaultValue={watch('method')} onValueChange={(value) => {
-              setValue('method', value);
-              handleConfigUpdate();
-            }}>
-              <Select.Trigger className="w-full" />
-              <Select.Content>
-                <Select.Item value="GET">GET</Select.Item>
-                <Select.Item value="POST">POST</Select.Item>
-                <Select.Item value="PUT">PUT</Select.Item>
-                <Select.Item value="DELETE">DELETE</Select.Item>
-                <Select.Item value="PATCH">PATCH</Select.Item>
-                <Select.Item value="HEAD">HEAD</Select.Item>
-                <Select.Item value="OPTIONS">OPTIONS</Select.Item>
-              </Select.Content>
-            </Select.Root>
-          </div>
+      <ConfigSection
+        title="基本配置"
+        description="配置HTTP请求的基本参数"
+        icon={<GlobeIcon />}
+      >
+        <ConfigSelectField
+          label="请求方法"
+          value={watch('method')}
+          onChange={(value) => setValue('method', value)}
+          options={methodOptions}
+          required
+          helpText="选择HTTP请求方法"
+        />
 
-          {/* URL Input */}
-          <div>
-            <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              请求URL
-            </Text>
+        <ConfigTextField
+          label="请求URL"
+          value={watch('url')}
+          onChange={(value) => setValue('url', value)}
+          placeholder="https://api.example.com/endpoint"
+          type="url"
+          required
+          showVariablePicker
+          availableVariables={availableVariables}
+          onVariableSelect={(variable) => handleVariableSelect('url', variable)}
+          helpText="完整的请求URL地址"
+        />
+
+        <ConfigTextField
+          label="输出变量名"
+          value={watch('output_name')}
+          onChange={(value) => setValue('output_name', value)}
+          placeholder="http_response"
+          helpText="用于存储响应数据的变量名（可选）"
+        />
+      </ConfigSection>
+
+      {/* Headers */}
+      <ConfigSection
+        title="请求头"
+        description="配置HTTP请求头信息"
+        icon={<LockClosedIcon />}
+        collapsible
+        defaultExpanded={headerFields.length > 0}
+      >
+        <ConfigDynamicListField
+          label="Headers"
+          items={headerFields}
+          onAdd={() => appendHeader({ key: '', value: '' })}
+          onRemove={removeHeader}
+          addButtonText="添加请求头"
+          helpText="添加自定义HTTP请求头"
+          renderItem={(field, index) => (
             <Flex gap="2">
-              <TextField.Root className="flex-1">
-                <TextField.Slot>
-                                      <input
-                      {...register('url')}
-                      placeholder="https://api.example.com/data"
-                      onBlur={handleConfigUpdate}
-                      className="w-full p-2 bg-transparent text-white outline-none"
-                    />
-                </TextField.Slot>
-              </TextField.Root>
-              <VariablePicker
+              <ConfigTextField
+                label=""
+                value={field.key}
+                onChange={(value) => setValue(`headersList.${index}.key`, value)}
+                placeholder="Header Name"
+              />
+              <ConfigTextField
+                label=""
+                value={field.value}
+                onChange={(value) => setValue(`headersList.${index}.value`, value)}
+                placeholder="Header Value"
+                showVariablePicker
                 availableVariables={availableVariables}
-                onVariableSelect={(variable) => handleVariableSelect(variable, 'url')}
+                onVariableSelect={(variable) => {
+                  const currentValue = watch(`headersList.${index}.value`);
+                  setValue(`headersList.${index}.value`, currentValue + `{{${variable}}}`);
+                }}
               />
             </Flex>
-          </div>
+          )}
+        />
+      </ConfigSection>
 
-          {/* Output Name */}
-          <div>
-            <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              输出变量名 (可选)
-            </Text>
-            <TextField.Root>
-              <TextField.Slot>
-                                  <input
-                    {...register('output_name')}
-                    placeholder="例如: api_response"
-                    onBlur={handleConfigUpdate}
-                    className="w-full p-2 bg-transparent text-white outline-none"
-                  />
-              </TextField.Slot>
-            </TextField.Root>
-          </div>
-        </div>
-      </Card>
-
-      {/* Headers Configuration */}
-      <Collapsible.Root open={showHeaders} onOpenChange={setShowHeaders}>
-        <Card className="bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)]">
-          <Collapsible.Trigger asChild>
-            <div className="p-4 flex items-center justify-between cursor-pointer">
-              <div className="flex items-center gap-2">
-                <Text className="text-sm font-medium text-[var(--color-text-primary)]">
-                  请求头
-                </Text>
-                {headersFields.length > 0 && (
-                  <Badge size="1" variant="soft">
-                    {headersFields.length}
-                  </Badge>
-                )}
-              </div>
-              {showHeaders ? (
-                <ChevronDownIcon className="text-[var(--color-text-secondary)]" />
-              ) : (
-                <ChevronRightIcon className="text-[var(--color-text-secondary)]" />
-              )}
-            </div>
-          </Collapsible.Trigger>
-          <Collapsible.Content>
-            <div className="p-4 pt-0 space-y-4">
-              {headersFields.map((field, index) => (
-                <div key={field.id}>
-                  <Flex gap="2" align="center">
-                    <TextField.Root className="flex-1">
-                      <TextField.Slot>
-                        <input
-                          {...register(`headersList.${index}.key`)}
-                          placeholder="Header名称"
-                          onBlur={handleConfigUpdate}
-                          className="w-full p-2 bg-transparent text-white outline-none"
-                        />
-                      </TextField.Slot>
-                    </TextField.Root>
-                    <TextField.Root className="flex-1">
-                      <TextField.Slot>
-                        <input
-                          {...register(`headersList.${index}.value`)}
-                          placeholder="Header值"
-                          onBlur={handleConfigUpdate}
-                          className="w-full p-2 bg-transparent text-white outline-none"
-                        />
-                      </TextField.Slot>
-                    </TextField.Root>
-                    <Button
-                      variant="ghost"
-                      color="red"
-                      onClick={() => {
-                        removeHeader(index);
-                        handleConfigUpdate();
-                      }}
-                    >
-                      <TrashIcon />
-                    </Button>
-                  </Flex>
-                </div>
-              ))}
-              <Button
-                variant="soft"
-                onClick={() => {
-                  appendHeader({ key: '', value: '' });
-                  handleConfigUpdate();
+      {/* Parameters */}
+      <ConfigSection
+        title="请求参数"
+        description="配置URL查询参数或请求体参数"
+        icon={<GearIcon />}
+        collapsible
+        defaultExpanded={paramFields.length > 0}
+      >
+        <ConfigDynamicListField
+          label="Parameters"
+          items={paramFields}
+          onAdd={() => appendParam({ key: '', value: '' })}
+          onRemove={removeParam}
+          addButtonText="添加参数"
+          helpText="添加URL参数或请求体参数"
+          renderItem={(field, index) => (
+            <Flex gap="2">
+              <ConfigTextField
+                label=""
+                value={field.key}
+                onChange={(value) => setValue(`paramsList.${index}.key`, value)}
+                placeholder="Parameter Name"
+              />
+              <ConfigTextField
+                label=""
+                value={field.value}
+                onChange={(value) => setValue(`paramsList.${index}.value`, value)}
+                placeholder="Parameter Value"
+                showVariablePicker
+                availableVariables={availableVariables}
+                onVariableSelect={(variable) => {
+                  const currentValue = watch(`paramsList.${index}.value`);
+                  setValue(`paramsList.${index}.value`, currentValue + `{{${variable}}}`);
                 }}
-              >
-                <PlusIcon className="mr-2" />
-                添加请求头
-              </Button>
-            </div>
-          </Collapsible.Content>
-        </Card>
-      </Collapsible.Root>
+              />
+            </Flex>
+          )}
+        />
+      </ConfigSection>
 
-      {/* URL Parameters Configuration */}
-      <Collapsible.Root open={showParams} onOpenChange={setShowParams}>
-        <Card className="bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)]">
-          <Collapsible.Trigger asChild>
-            <div className="p-4 flex items-center justify-between cursor-pointer">
-              <div className="flex items-center gap-2">
-                <Text className="text-sm font-medium text-[var(--color-text-primary)]">
-                  URL参数
-                </Text>
-                {paramsFields.length > 0 && (
-                  <Badge size="1" variant="soft">
-                    {paramsFields.length}
-                  </Badge>
-                )}
-              </div>
-              {showParams ? (
-                <ChevronDownIcon className="text-[var(--color-text-secondary)]" />
-              ) : (
-                <ChevronRightIcon className="text-[var(--color-text-secondary)]" />
-              )}
-            </div>
-          </Collapsible.Trigger>
-          <Collapsible.Content>
-            <div className="p-4 pt-0 space-y-4">
-              {paramsFields.map((field, index) => (
-                <div key={field.id}>
-                  <Flex gap="2" align="center">
-                    <TextField.Root className="flex-1">
-                      <TextField.Slot>
-                        <input
-                          {...register(`paramsList.${index}.key`)}
-                          placeholder="参数名"
-                          onBlur={handleConfigUpdate}
-                          className="w-full p-2 bg-transparent text-white outline-none"
-                        />
-                      </TextField.Slot>
-                    </TextField.Root>
-                    <TextField.Root className="flex-1">
-                      <TextField.Slot>
-                        <input
-                          {...register(`paramsList.${index}.value`)}
-                          placeholder="参数值"
-                          onBlur={handleConfigUpdate}
-                          className="w-full p-2 bg-transparent text-white outline-none"
-                        />
-                      </TextField.Slot>
-                    </TextField.Root>
-                    <Button
-                      variant="ghost"
-                      color="red"
-                      onClick={() => {
-                        removeParam(index);
-                        handleConfigUpdate();
-                      }}
-                    >
-                      <TrashIcon />
-                    </Button>
-                  </Flex>
-                </div>
-              ))}
-              <Button
-                variant="soft"
-                onClick={() => {
-                  appendParam({ key: '', value: '' });
-                  handleConfigUpdate();
-                }}
-              >
-                <PlusIcon className="mr-2" />
-                添加URL参数
-              </Button>
-            </div>
-          </Collapsible.Content>
-        </Card>
-      </Collapsible.Root>
+      {/* Advanced Settings */}
+      <ConfigSection
+        title="高级设置"
+        description="配置超时、重试等高级选项"
+        icon={<TimerIcon />}
+        collapsible
+        defaultExpanded={false}
+      >
+        <ConfigTextField
+          label="超时时间 (秒)"
+          value={String(watch('timeout'))}
+          onChange={(value) => setValue('timeout', parseInt(value) || 30)}
+          type="number"
+          placeholder="30"
+          helpText="请求超时时间，默认30秒"
+        />
 
-      {/* Advanced Configuration */}
-      <Collapsible.Root open={showAdvanced} onOpenChange={setShowAdvanced}>
-        <Card className="bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)]">
-          <Collapsible.Trigger asChild>
-            <div className="p-4 flex items-center justify-between cursor-pointer">
-              <div className="flex items-center gap-2">
-                <Text className="text-sm font-medium text-[var(--color-text-primary)]">
-                  高级设置
-                </Text>
-                <Badge size="1" variant="soft" color="orange">
-                  新功能
-                </Badge>
-              </div>
-              {showAdvanced ? (
-                <ChevronDownIcon className="text-[var(--color-text-secondary)]" />
-              ) : (
-                <ChevronRightIcon className="text-[var(--color-text-secondary)]" />
-              )}
-            </div>
-          </Collapsible.Trigger>
-          <Collapsible.Content>
-            <div className="p-4 pt-0 space-y-6">
-              {/* Timeout Setting */}
-              <div>
-                <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  超时时间 (秒)
-                </Text>
-                <TextField.Root>
-                  <TextField.Slot>
-                    <input
-                      {...register('timeout', { valueAsNumber: true })}
-                      type="number"
-                      min="1"
-                      placeholder="30"
-                      onBlur={handleConfigUpdate}
-                      className="w-full p-2 bg-transparent text-white outline-none"
-                    />
-                  </TextField.Slot>
-                </TextField.Root>
-              </div>
+        <ConfigTextField
+          label="最大重试次数"
+          value={String(watch('max_retries'))}
+          onChange={(value) => setValue('max_retries', parseInt(value) || 3)}
+          type="number"
+          placeholder="3"
+          helpText="失败时的最大重试次数"
+        />
 
-              {/* Retry Configuration */}
-              <Collapsible.Root open={showRetry} onOpenChange={setShowRetry}>
-                <div>
-                  <Collapsible.Trigger asChild>
-                    <div className="flex items-center justify-between cursor-pointer mb-4">
-                      <Text className="text-sm font-medium text-[var(--color-text-primary)]">
-                        重试设置
-                      </Text>
-                      {showRetry ? (
-                        <ChevronDownIcon className="text-[var(--color-text-secondary)]" />
-                      ) : (
-                        <ChevronRightIcon className="text-[var(--color-text-secondary)]" />
-                      )}
-                    </div>
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <div className="space-y-4">
-                      <div>
-                        <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                          最大重试次数
-                        </Text>
-                        <TextField.Root>
-                          <TextField.Slot>
-                            <input
-                              {...register('max_retries', { valueAsNumber: true })}
-                              type="number"
-                              min="0"
-                              placeholder="3"
-                              onBlur={handleConfigUpdate}
-                              className="w-full p-2 bg-transparent text-white outline-none"
-                            />
-                          </TextField.Slot>
-                        </TextField.Root>
-                      </div>
-                      <div>
-                        <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                          重试间隔 (秒)
-                        </Text>
-                        <TextField.Root>
-                          <TextField.Slot>
-                            <input
-                              {...register('retry_delay', { valueAsNumber: true })}
-                              type="number"
-                              min="0.1"
-                              step="0.1"
-                              placeholder="1"
-                              onBlur={handleConfigUpdate}
-                              className="w-full p-2 bg-transparent text-white outline-none"
-                            />
-                          </TextField.Slot>
-                        </TextField.Root>
-                      </div>
-                    </div>
-                  </Collapsible.Content>
-                </div>
-              </Collapsible.Root>
+        <ConfigTextField
+          label="重试间隔 (秒)"
+          value={String(watch('retry_delay'))}
+          onChange={(value) => setValue('retry_delay', parseFloat(value) || 1)}
+          type="number"
+          placeholder="1"
+          helpText="重试之间的等待时间"
+        />
 
-              <Separator />
+        <ConfigSelectField
+          label="响应类型"
+          value={watch('response_type')}
+          onChange={(value) => setValue('response_type', value)}
+          options={responseTypeOptions}
+          helpText="指定如何处理响应内容"
+        />
 
-              {/* Response Type */}
-              <div>
-                <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  响应类型
-                </Text>
-                <Select.Root defaultValue={watch('response_type')} onValueChange={(value) => {
-                  setValue('response_type', value);
-                  handleConfigUpdate();
-                }}>
-                  <Select.Trigger className="w-full" />
-                  <Select.Content>
-                    <Select.Item value="auto">自动检测</Select.Item>
-                    <Select.Item value="json">JSON</Select.Item>
-                    <Select.Item value="text">纯文本</Select.Item>
-                    <Select.Item value="binary">二进制</Select.Item>
-                  </Select.Content>
-                </Select.Root>
-              </div>
-
-              {/* User Agent */}
-              <div>
-                <Text className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  User Agent
-                </Text>
-                <TextField.Root>
-                  <TextField.Slot>
-                    <input
-                      {...register('user_agent')}
-                      placeholder="自定义用户代理字符串"
-                      onBlur={handleConfigUpdate}
-                      className="w-full p-2 bg-transparent text-white outline-none"
-                    />
-                  </TextField.Slot>
-                </TextField.Root>
-              </div>
-            </div>
-          </Collapsible.Content>
-        </Card>
-      </Collapsible.Root>
-    </div>
+        <ConfigTextField
+          label="User Agent"
+          value={watch('user_agent')}
+          onChange={(value) => setValue('user_agent', value)}
+          placeholder="自定义用户代理字符串"
+          helpText="自定义User-Agent请求头"
+        />
+      </ConfigSection>
+    </ConfigFormBase>
   );
 }; 
