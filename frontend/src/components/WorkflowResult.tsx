@@ -133,6 +133,34 @@ const JsonViewer = ({ data, title }: { data: any; title: string }) => {
   );
 };
 
+// 新增：美化 map 展示的组件，支持嵌套
+const MapViewer: React.FC<{ data: Record<string, any>; level?: number }> = ({ data, level = 0 }) => {
+  return (
+    <div className={`space-y-2 pl-${level * 2}`}> {/* 缩进层级 */}
+      {Object.entries(data).map(([key, value]) => (
+        <div key={key} className="p-3 bg-[var(--color-bg-secondary)] rounded-md border border-[var(--color-border-primary)]">
+          <Text size="2" weight="medium" className="text-[var(--color-text-secondary)] mb-1 block">
+            {key}:
+          </Text>
+          {typeof value === 'object' && value !== null && !Array.isArray(value) ? (
+            <MapViewer data={value} level={level + 1} />
+          ) : Array.isArray(value) ? (
+            <div className="space-y-1">
+              {value.map((item, idx) => (
+                <div key={idx} className="bg-[var(--color-bg-tertiary)] rounded px-2 py-1 text-white text-xs">
+                  {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Text size="3" className="text-white">{String(value)}</Text>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // 解析和美化最终结果显示
 const FinalResultDisplay = ({ data }: { data: any }) => {
   const [copied, setCopied] = useState(false);
@@ -143,110 +171,41 @@ const FinalResultDisplay = ({ data }: { data: any }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // 尝试提取最终输出结果
+  // 优化：始终优先 end 节点的 outputs 字段
   const extractFinalOutput = (result: any) => {
     if (!result) return null;
-    
-    // 如果结果直接是字符串或简单值
+    // 优先 end 节点的 outputs
+    if (typeof result === 'object' && result !== null) {
+      if (result.end_1 && result.end_1.outputs) {
+        return result.end_1.outputs;
+      }
+      if (result.end && result.end.outputs) {
+        return result.end.outputs;
+      }
+      if (result.outputs) {
+        return result.outputs;
+      }
+    }
+    // 兼容旧逻辑
     if (typeof result === 'string' || typeof result === 'number' || typeof result === 'boolean') {
       return result;
     }
-
-    // 智能提取工作流输出：优先查找 Agent 节点的输出
     if (typeof result === 'object' && result !== null) {
-      // 查找所有 agent 节点的输出
-      const agentOutputs: any[] = [];
-      for (const [nodeId, nodeData] of Object.entries(result)) {
-        if (nodeId.includes('agent') && typeof nodeData === 'object' && nodeData !== null) {
-          const nodeResult = nodeData as any;
-          // 查找 xxx_output 格式的输出
-          for (const [key, value] of Object.entries(nodeResult)) {
-            if (key.includes('output') && value) {
-              agentOutputs.push(value);
-            }
-          }
+      // 只保留用户关心的输出
+      const processedResult: any = {};
+      for (const [key, value] of Object.entries(result)) {
+        if (!['status', 'startTime', 'endTime', 'duration', 'nodes', 'error', 'totalNodes', 'completedNodes', 'globalLogs'].includes(key)) {
+          processedResult[key] = value;
         }
       }
-      
-      // 如果找到 Agent 输出，返回第一个（或合并多个）
-      if (agentOutputs.length === 1) {
-        return agentOutputs[0];
-      } else if (agentOutputs.length > 1) {
-        return agentOutputs;
+      if (Object.keys(processedResult).length === 1) {
+        return processedResult[Object.keys(processedResult)[0]];
       }
-      
-      // 如果没有找到 Agent 输出，查找 end 节点的 outputs
-      if (result.end_1 || result.end) {
-        const endResult = result.end_1 || result.end;
-        if (endResult && endResult.outputs) {
-          return endResult.outputs;
-        }
-      }
-      
-      // 查找任何包含 "output" 的字段
-      const outputFields: any[] = [];
-      const searchForOutputs = (obj: any, path: string = '') => {
-        if (typeof obj === 'object' && obj !== null) {
-          for (const [key, value] of Object.entries(obj)) {
-            const currentPath = path ? `${path}.${key}` : key;
-            if (key.includes('output') && value && typeof value === 'string') {
-              outputFields.push(value);
-            } else if (typeof value === 'object') {
-              searchForOutputs(value, currentPath);
-            }
-          }
-        }
-      };
-      
-      searchForOutputs(result);
-      
-      if (outputFields.length === 1) {
-        return outputFields[0];
-      } else if (outputFields.length > 1) {
-        return outputFields;
+      if (Object.keys(processedResult).length > 0) {
+        return processedResult;
       }
     }
-
-    // 如果包含outputs字段（end节点的输出）
-    if (result.outputs) {
-      return result.outputs;
-    }
-
-    // 如果只有一个键值对，直接提取值
-    const keys = Object.keys(result);
-    if (keys.length === 1) {
-      const singleValue = result[keys[0]];
-      // 如果是简单值，直接返回
-      if (typeof singleValue === 'string' || typeof singleValue === 'number' || typeof singleValue === 'boolean') {
-        return singleValue;
-      }
-      // 如果是对象但比较简单，返回该对象
-      if (typeof singleValue === 'object' && singleValue !== null) {
-        return singleValue;
-      }
-    }
-
-    // 如果有多个键值对，返回整个对象但做美化处理
-    const processedResult: any = {};
-    for (const [key, value] of Object.entries(result)) {
-      // 去掉一些技术性的键，只保留用户关心的输出
-      if (!['status', 'startTime', 'endTime', 'duration', 'nodes', 'error', 'totalNodes', 'completedNodes', 'globalLogs'].includes(key)) {
-        processedResult[key] = value;
-      }
-    }
-
-    // 如果处理后的结果为空，返回null
-    if (Object.keys(processedResult).length === 0) {
-      return null;
-    }
-
-    // 如果处理后只有一个键值对，提取其值
-    const processedKeys = Object.keys(processedResult);
-    if (processedKeys.length === 1) {
-      return processedResult[processedKeys[0]];
-    }
-
-    return processedResult;
+    return null;
   };
 
   const finalOutput = extractFinalOutput(data);
@@ -320,26 +279,7 @@ const FinalResultDisplay = ({ data }: { data: any }) => {
             </div>
           ) : typeof finalOutput === 'object' && finalOutput !== null ? (
             // 对象结果 - 键值对形式或JSON显示
-            Object.keys(finalOutput).length <= 5 ? (
-              // 简单对象 - 键值对形式
-              <div className="space-y-3">
-                {Object.entries(finalOutput).map(([key, value]) => (
-                  <div key={key} className="p-3 bg-[var(--color-bg-secondary)] rounded-md border border-[var(--color-border-primary)]">
-                    <Text size="2" weight="medium" className="text-[var(--color-text-secondary)] mb-1 block">
-                      {key}:
-                    </Text>
-                    <Text size="3" className="text-white">
-                      {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                    </Text>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              // 复杂对象 - JSON格式
-              <pre className="text-sm text-white whitespace-pre-wrap font-mono p-3 bg-[var(--color-bg-secondary)] rounded-md border border-[var(--color-border-primary)]">
-                {JSON.stringify(finalOutput, null, 2)}
-              </pre>
-            )
+            <MapViewer data={finalOutput} />
           ) : (
             // 其他情况
             <div className="p-4 bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)]">

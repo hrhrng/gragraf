@@ -105,48 +105,46 @@ export const WorkflowListDialog: React.FC<WorkflowListDialogProps> = ({
   return (
     <>
       <Dialog.Root open={open} onOpenChange={onOpenChange}>
-        <Dialog.Content maxWidth="800px" maxHeight="600px">
+        <Dialog.Content maxWidth="800px" style={{ maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <Dialog.Title>工作流管理</Dialog.Title>
+          {/* 顶部搜索和过滤栏 */}
+          <Flex gap="3" align="center" style={{ marginBottom: 16 }}>
+            <TextField.Root 
+              style={{ flex: 1 }}
+              value={searchTerm}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              placeholder="搜索工作流名称"
+              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleSearch()}
+            >
+              <TextField.Slot>
+                <MagnifyingGlassIcon height="16" width="16" />
+              </TextField.Slot>
+            </TextField.Root>
 
-          <Flex direction="column" gap="4" style={{ height: '500px' }}>
-            {/* 搜索和过滤 */}
-            <Flex gap="3" align="center">
-              <TextField.Root 
-                style={{ flex: 1 }}
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                placeholder="搜索工作流名称"
-                onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleSearch()}
-              >
-                <TextField.Slot>
-                  <MagnifyingGlassIcon height="16" width="16" />
-                </TextField.Slot>
-              </TextField.Root>
+            <Select.Root value={statusFilter} onValueChange={setStatusFilter}>
+              <Select.Trigger style={{ width: '120px' }} />
+              <Select.Content>
+                <Select.Item value="all">全部状态</Select.Item>
+                <Select.Item value="draft">草稿</Select.Item>
+                <Select.Item value="active">活跃</Select.Item>
+                <Select.Item value="inactive">非活跃</Select.Item>
+                <Select.Item value="archived">已归档</Select.Item>
+              </Select.Content>
+            </Select.Root>
 
-              <Select.Root value={statusFilter} onValueChange={setStatusFilter}>
-                <Select.Trigger style={{ width: '120px' }} />
-                <Select.Content>
-                  <Select.Item value="all">全部状态</Select.Item>
-                  <Select.Item value="draft">草稿</Select.Item>
-                  <Select.Item value="active">活跃</Select.Item>
-                  <Select.Item value="inactive">非活跃</Select.Item>
-                  <Select.Item value="archived">已归档</Select.Item>
-                </Select.Content>
-              </Select.Root>
-
-              <IconButton onClick={() => loadWorkflows(currentPage)} disabled={loading}>
-                <ReloadIcon />
-              </IconButton>
-            </Flex>
-
-            {error && (
-              <Text color="red" size="2">
-                {error}
-              </Text>
-            )}
-
-            {/* 工作流列表 */}
-            <Flex direction="column" gap="2" style={{ flex: 1, overflowY: 'auto' }}>
+            <IconButton onClick={() => loadWorkflows(currentPage)} disabled={loading}>
+              <ReloadIcon />
+            </IconButton>
+          </Flex>
+          {/* 错误提示 */}
+          {error && (
+            <Text color="red" size="2" style={{ marginBottom: 8 }}>
+              {error}
+            </Text>
+          )}
+          {/* 中部滚动区：工作流列表和分页 */}
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            <Flex direction="column" gap="2">
               {loading ? (
                 <Text size="2" color="gray">加载中...</Text>
               ) : workflows.length === 0 ? (
@@ -161,13 +159,6 @@ export const WorkflowListDialog: React.FC<WorkflowListDialogProps> = ({
                             <Text weight="medium" size="3">
                               {workflow.name}
                             </Text>
-                            <Badge 
-                              color={getStatusColor(workflow.status)}
-                              variant="soft"
-                              size="1"
-                            >
-                              {getStatusText(workflow.status)}
-                            </Badge>
                           </Flex>
                           {workflow.description && (
                             <Text size="2" color="gray">
@@ -221,10 +212,9 @@ export const WorkflowListDialog: React.FC<WorkflowListDialogProps> = ({
                 ))
               )}
             </Flex>
-
             {/* 分页 */}
             {totalPages > 1 && (
-              <Flex justify="center" gap="2">
+              <Flex justify="center" gap="2" style={{ marginTop: 16 }}>
                 <Button
                   size="1"
                   variant="soft"
@@ -246,16 +236,16 @@ export const WorkflowListDialog: React.FC<WorkflowListDialogProps> = ({
                 </Button>
               </Flex>
             )}
-
-            <Flex justify="end">
-              <Button
-                variant="soft"
-                color="gray"
-                onClick={() => onOpenChange(false)}
-              >
-                关闭
-              </Button>
-            </Flex>
+          </div>
+          {/* 底部按钮 */}
+          <Flex justify="end" style={{ marginTop: 16 }}>
+            <Button
+              variant="soft"
+              color="gray"
+              onClick={() => onOpenChange(false)}
+            >
+              关闭
+            </Button>
           </Flex>
         </Dialog.Content>
       </Dialog.Root>

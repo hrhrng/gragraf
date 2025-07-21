@@ -1,6 +1,7 @@
 from typing import Dict, Any, List
 from pydantic import BaseModel, Field
 from ..utils.templating import render_config
+from . import Conditional
 
 class BranchCondition(BaseModel):
     condition: str = Field(..., description="A Python expression to evaluate for branching.")
@@ -12,7 +13,7 @@ class BranchConfig(BaseModel):
     conditions: List[BranchCondition] = Field(default_factory=list, description="List of conditions to evaluate")
     hasElse: bool = Field(default=False, description="Whether to include an else branch")
 
-class BranchNode:
+class BranchNode(Conditional):
     def __init__(self, id: str, config: BranchConfig):
         self.id = id
         self.config = config
@@ -34,12 +35,12 @@ class BranchNode:
                     continue
             else:
                 # No condition matched, use else branch if available
-                decision = "else" if rendered_config.hasElse else "error_path"
+                decision = "else" if rendered_config.hasElse else "default"
         except Exception:
-            decision = "error_path"
+            decision = "default"
         
         return {f"{self.id}_decision": decision}
     
     def get_decision(self, state: Dict[str, Any]) -> str:
         """Get the branch decision from state."""
-        return state.get(f"{self.id}_decision", "error_path") 
+        return state.get(f"{self.id}_decision")

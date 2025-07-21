@@ -11,6 +11,7 @@ from .nodes.agent import AgentNode, AgentConfig
 from .nodes.human_in_loop import HumanInLoopNode, HumanInLoopConfig
 from .nodes.start import StartNode
 from .nodes.end import EndNode
+from .nodes import Conditional
 
 import operator
 import logging
@@ -64,13 +65,15 @@ def state_reducer(x: Dict[str, Any], y: Dict[str, Any]) -> Dict[str, Any]:
 # Dynamic state that can hold any fields, with a custom reducer
 GraphState = Annotated[Dict[str, Any], state_reducer]
 
+global_memory_saver = MemorySaver()
+
 class GraphCompiler:
     def __init__(self, graph_dsl: Dict[str, Any], checkpointer: Optional[MemorySaver] = None):
         self.graph_dsl = graph_dsl
         self.parsed_graph = parse_graph(graph_dsl)
         self.nodes = {node.id: node for node in self.parsed_graph.nodes}
         self.node_instances = {}
-        self.checkpointer = checkpointer or MemorySaver()
+        self.checkpointer = checkpointer or global_memory_saver
 
     def _create_node_instance(self, node_id: str):
         """Creates an instance of a node from its configuration."""
@@ -190,27 +193,32 @@ class GraphCompiler:
         workflow = StateGraph(GraphState)
         start_node_id = self._get_start_node()
         end_node_id = self._get_end_node()
+        
+        # Analyze edges to handle multiple input edges properly
+        # Group edges by target to detect nodes with multiple inputs
+        edges_by_target = {}
+        for edge in self.parsed_graph.edges:
+            source_node = self.nodes[edge.source]
+            if source_node.type not in (NodeType.BRANCH, NodeType.HUMAN_IN_LOOP):  # Skip branch and human-in-loop nodes for now
+                target = edge.target
+                if target not in edges_by_target:
+                    edges_by_target[target] = []
+                edges_by_target[target].append(edge.source)
 
         # Add all nodes to the graph
         for node_id, node_config in self.nodes.items():
             # Create node instances for all node types
             instance = self._create_node_instance(node_id)
             self.node_instances[node_id] = instance
-            workflow.add_node(node_id, instance.execute)
+            if node_id in edges_by_target and len(edges_by_target[node_id]) > 1:
+                workflow.add_node(node_id, instance.execute, defer = True) # 延迟执行
+            else:
+                workflow.add_node(node_id, instance.execute)
         
         # Set the single start node as entry point
         workflow.set_entry_point(start_node_id)
 
-        # Analyze edges to handle multiple input edges properly
-        # Group edges by target to detect nodes with multiple inputs
-        edges_by_target = {}
-        for edge in self.parsed_graph.edges:
-            source_node = self.nodes[edge.source]
-            if source_node.type not in (NodeType.BRANCH, NodeType.HUMAN_IN_LOOP):  # Skip branch nodes for now
-                target = edge.target
-                if target not in edges_by_target:
-                    edges_by_target[target] = []
-                edges_by_target[target].append(edge.source)
+
         
         # Add edges based on input degree
         regular_edges = []
@@ -221,7 +229,9 @@ class GraphCompiler:
                 regular_edges.append(f"{sources[0]} -> {target}")
             else:
                 # Multiple inputs - use list syntax for LangGraph
-                workflow.add_edge(sources, target)
+                # todo 这种写法也不太对，可能还是要defer
+                for source in sources:
+                    workflow.add_edge(source, target)
                 regular_edges.append(f"{sources} -> {target}")
         # Add conditional edges for branch and human-in-loop nodes
         branch_edges = []
@@ -230,12 +240,12 @@ class GraphCompiler:
                 instance = self.node_instances[node_id]
                 # Find the edges from this conditional node
                 conditional_edges_for_node = [e for e in self.parsed_graph.edges if e.source == node_id]
-                path_map = {
-                    edge.source_handle or "default": edge.target 
-                    for edge in conditional_edges_for_node
-                }
+                path_map = {}
+                for edge in conditional_edges_for_node:
+                    handle = edge.source_handle or "default"
+                    path_map[handle] = edge.target
                 # LangGraph requires a mapping function that returns the path key
-                def create_condition_func(inst):
+                def create_condition_func(inst: Conditional):
                     def condition_func(state):
                         return inst.get_decision(state)
                     return condition_func

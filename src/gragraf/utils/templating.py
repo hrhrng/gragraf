@@ -70,7 +70,7 @@ def render_template_string(template_string: str, state: Dict[str, Any], debug: b
     except UndefinedError as e:
         logger.error(f"Undefined variable in template '{template_string}': {e}")
         # Return original string with error marker for debugging
-        return f"[ERROR: {str(e)}] {template_string}"
+        return f""
     except TemplateError as e:
         logger.error(f"Template syntax error in '{template_string}': {e}")
         return f"[TEMPLATE_ERROR: {str(e)}] {template_string}"

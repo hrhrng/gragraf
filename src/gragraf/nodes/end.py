@@ -39,7 +39,7 @@ class EndNode:
                     logger.info(f"EndNode {self.node_id}: Collected {output_var.name} = {output_var.value}")
                 except Exception as e:
                     logger.warning(f"EndNode {self.node_id}: Failed to render output {output_var.name}: {e}")
-                    outputs[output_var.name] = f"Error: {str(e)}"
+                    outputs[output_var.name] = f""
             
             # Return the outputs under a special key for the end node
             output_key = f"{self.node_id}_outputs"

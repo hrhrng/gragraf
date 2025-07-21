@@ -24,30 +24,19 @@ class StartNode:
     def execute(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Initialize workflow state with input variables.
-        The actual input values should be passed from the frontend/API.
+        The actual input values should be passed from the frontend/API via state.
         """
         try:
-            # Start node should extract input values from its raw config
-            # and make them available to the rest of the workflow
             updates = {}
-            
-            # For each defined input variable, try to extract its value from the raw config
+            # For each defined input variable, try to extract its value from the state
             for input_var in self.config.inputs:
                 var_name = input_var.name
-                # Look for the variable value in the raw config
-                if var_name in self.raw_config:
-                    updates[var_name] = self.raw_config[var_name]
-                    logger.info(f"StartNode {self.node_id}: Set {var_name} = {self.raw_config[var_name]}")
-            
-            # Also add any additional config values that aren't in the standard fields
-            # This handles cases where values are passed directly in the config
-            for key, value in self.raw_config.items():
-                if key not in ['inputs'] and not key.startswith('_'):
-                    updates[key] = value
-                    logger.info(f"StartNode {self.node_id}: Set additional {key} = {value}")
-            
+                if var_name in state:
+                    updates[var_name] = state[var_name]
+                    logger.info(f"StartNode {self.node_id}: Set {var_name} = {state[var_name]}")
+                else:
+                    logger.warning(f"StartNode {self.node_id}: Input variable {var_name} not found in state")
             return updates
-            
         except Exception as e:
             logger.error(f"StartNode {self.node_id} execution failed: {e}")
             return {f"{self.node_id}_error": f"Start node execution failed: {str(e)}"}

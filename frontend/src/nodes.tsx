@@ -95,7 +95,12 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
   const conditions = data.config?.conditions || [];
   const hasElse = data.config?.hasElse || false;
   const branchCount = conditions.length + (hasElse ? 1 : 0);
-  
+
+  // 行高（px），需与下方内容区每行高度一致
+  const rowHeight = 32;
+  // 内容区顶部padding
+  const contentPaddingTop = 16;
+
   return (
     <div className="relative transition-all duration-200">
       <Handle 
@@ -103,7 +108,6 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
         position={Position.Left}
         className="w-3 h-3 border-2 border-white bg-[var(--color-bg-tertiary)]"
       />
-      
       <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
         selected 
           ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' 
@@ -118,14 +122,14 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
               {data.label}
             </Text>
           </div>
-          
           {conditions.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2" style={{ position: 'relative', paddingTop: contentPaddingTop }}>
               <Text size="1" className="text-[var(--color-text-secondary)]">
                 Conditions: {conditions.length}
               </Text>
-              {conditions.slice(0, 3).map((condition: any, index: number) => (
-                <div key={index} className="flex items-center justify-between">
+              {/* 条件分支行 */}
+              {conditions.map((condition: any, index: number) => (
+                <div key={index} className="flex items-center justify-between h-8 relative">
                   <Text size="1" className="text-[var(--color-text-secondary)]">
                     {index === 0 ? 'If' : `Else if`}
                   </Text>
@@ -134,39 +138,48 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
                       {condition.condition?.slice(0, 10) + (condition.condition?.length > 10 ? '...' : '') || 'Empty'}
                     </Text>
                   </Badge>
+                  {/* 对齐的Handle */}
+                  <Handle
+                    type="source"
+                    position={Position.Right}
+                    id={`branch-${index}`}
+                    style={{
+                      position: 'absolute',
+                      right: -18,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                    }}
+                    className="w-3 h-3 border-2 border-yellow-400 bg-yellow-500/20"
+                  />
                 </div>
               ))}
-              {conditions.length > 3 && (
-                <div className="flex items-center justify-between">
-                  <Text size="1" className="text-[var(--color-text-secondary)]">
-                    ...
-                  </Text>
-                  <Badge size="1" variant="soft" color="gray">
-                    <Text size="1">+{conditions.length - 3}</Text>
-                  </Badge>
-                </div>
-              )}
+              {/* else分支行 */}
               {hasElse && (
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between h-8 relative">
                   <Text size="1" className="text-[var(--color-text-secondary)]">
                     Else
                   </Text>
                   <Badge size="1" variant="soft" color="gray">
                     <Text size="1">Default</Text>
                   </Badge>
+                  <Handle
+                    type="source"
+                    position={Position.Right}
+                    id="default"
+                    style={{
+                      position: 'absolute',
+                      right: -18,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                    }}
+                    className="w-3 h-3 border-2 border-gray-400 bg-gray-500/20"
+                  />
                 </div>
               )}
             </div>
           )}
         </div>
       </Card>
-      
-      {/* 主输出Handle */}
-      <Handle 
-        type="source" 
-        position={Position.Right}
-        className="w-3 h-3 border-2 border-yellow-400 bg-yellow-500/20"
-      />
     </div>
   );
 };
@@ -227,7 +240,7 @@ const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
       <Handle 
         type="source" 
         position={Position.Right}
-        id="approval"
+        id="approved"
         style={{ top: '40%' }}
         className="w-3 h-3 border-2 border-green-400 bg-green-500/20"
       />
@@ -236,7 +249,7 @@ const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
       <Handle 
         type="source" 
         position={Position.Right}
-        id="rejection"
+        id="rejected"
         style={{ top: '60%' }}
         className="w-3 h-3 border-2 border-red-400 bg-red-500/20"
       />

@@ -12,7 +12,7 @@ import json
 import asyncio
 from datetime import datetime
 from typing import Dict, Any, AsyncGenerator, Optional
-from langgraph.types import Command
+from langgraph.types import Interrupt, Command
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -88,57 +88,37 @@ async def execute_graph_stream(request: StreamRequest):
 
             # Execute workflow
             dsl_data = request.dsl.model_dump()
-            # todo 不因该通过dsl传入，而是通过graph.stream作为入参传入
-            # Inject runtime inputs into start node if this is initial execution
-            if request.runtime_inputs and not request.human_input:
-                for node in dsl_data['nodes']:
-                    if node['type'] == 'start':
-                        node['config'].update(request.runtime_inputs)
-                        break
-
             compiler = GraphCompiler(dsl_data)
             app_instance = compiler.compile()
-
             # Configure for streaming with thread support
             config = {"configurable": {"thread_id": thread_id}}
-
-            # This is a new execution - start from beginning
-            logger.info(f"Starting new workflow execution")
-
             # Stream execution
             final_state = {}
             interrupt_info = None
-
+            # 处理 human-in-loop resume
+            logger.info(f"request.human_input: {request.human_input}")
             if request.human_input:
-                input_of_graph = Command(resume="approve")
+                input_of_graph = Command(resume=list(request.human_input.values())[0])
             else:
-                input_of_graph = {"inputs": request.runtime_inputs}
-
+                input_of_graph = request.runtime_inputs or {}
+            logger.info(f"input_of_graph: {input_of_graph}")
             for chunk in app_instance.stream(input_of_graph, config):
                 final_state.update(chunk)
-
                 # Check for human-in-loop interrupts
-                interrupt_info = None
-                for node_id, node_data in chunk.items():
-                    if isinstance(node_data, dict):
-                        for key, value in node_data.items():
-                            if key.endswith('_hilp_info'):
-                                interrupt_info = value
-                                break
-                    if interrupt_info:
-                        break
-
-                if interrupt_info:
-                    yield f"data: {json.dumps({'type': 'human_input_required', 'interrupt_info': interrupt_info, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+                interrupt_info: tuple[Interrupt] | None = chunk.get('__interrupt__', None)
+                if interrupt_info is not None:
+                    logger.info(f"yield data: {interrupt_info[0].value}")
+                    yield f"data: {json.dumps({'type': 'human_input_required', 'interrupt_info': interrupt_info[0].value, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
                     return  # Stop execution, wait for human input
-
-                yield f"data: {json.dumps({'type': 'progress', 'data': chunk, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
-
-                # Send completion event
-                yield f"data: {json.dumps({'type': 'complete', 'result': final_state, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+                else:
+                    logger.info(f"yield data: {chunk}")
+                    yield f"data: {json.dumps({'type': 'progress', 'data': chunk, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+            # Send completion event
+            logger.info(f"final_state: {final_state}")
+            yield f"data: {json.dumps({'type': 'complete', 'result': final_state, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
 
         except Exception as e:
-            logger.error(f"Streaming execution failed: {e}")
+            logger.error(f"Streaming execution failed: {e}", exc_info=True)
             yield f"data: {json.dumps({'type': 'error', 'error': str(e), 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
 
     return StreamingResponse(
