@@ -71,7 +71,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
       {/* Header */}
       <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-b border-[var(--color-border-primary)] ${isCollapsed ? 'h-12' : 'h-12'} flex items-center`}>
         <div className="flex items-center gap-2 w-full">
-          {!isCollapsed && (
+          {isCollapsed ? (
+            <Text size="4" weight="bold" className="text-white mx-auto" style={{ fontFamily: 'Bellota Text, Arial, sans-serif' }}>
+              G
+            </Text>
+          ) : (
             <Heading size="3" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
               GraGraf
             </Heading>
@@ -103,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
         
         {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
         <div className="h-full overflow-y-auto overflow-x-visible">
-          <div className={`${isCollapsed ? 'space-y-2 px-1' : 'space-y-1 px-1'}`}>
+          <div className={`${isCollapsed ? 'space-y-1 px-1 pt-2' : 'space-y-1 px-1 pt-1'}`}>
             {nodeTypes.map((nodeType) => {
               const IconComponent = nodeType.icon;
               return (
@@ -113,9 +117,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   onClick={() => onAddNode(nodeType.type, nodeType.label)}
                   title={isCollapsed ? nodeType.label : undefined}
                 >
-                  <div className={`${isCollapsed ? 'p-2' : 'px-2 py-1.5'}`}>
+                  <div className={`${isCollapsed ? 'p-1.5' : 'px-2 py-1.5'}`}>
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-1.5'}`}>
-                      <div className={`${isCollapsed ? 'w-6 h-6' : 'w-5 h-5'} rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                      <div className={`${isCollapsed ? 'w-7 h-7' : 'w-5 h-5'} rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
                         <IconComponent className={`${isCollapsed ? 'w-4 h-4' : 'w-3 h-3'} text-${nodeType.color}-400 transition-all`} />
                       </div>
                       {!isCollapsed && (
