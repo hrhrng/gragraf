@@ -1,6 +1,5 @@
-from typing import Dict, Any, TypedDict, List, Annotated, Optional
-from langgraph.graph import StateGraph, END, START
-from langgraph.graph.message import add_messages
+from typing import Dict, Any, List, Annotated, Optional
+from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from .parser import parse_graph
 from .schemas.graph import NodeType
@@ -81,7 +80,6 @@ class GraphCompiler:
         if node_type == NodeType.HTTP_REQUEST:
             config = HttpRequestConfig.model_validate(node_config.config)
             return HttpRequestNode(node_id, config)
-
         elif node_type == NodeType.BRANCH:
             config = BranchConfig.model_validate(node_config.config)
             return BranchNode(node_id, config)
@@ -167,7 +165,6 @@ class GraphCompiler:
             if node_config.type not in [NodeType.START, NodeType.END]:
                 has_incoming = node_id in edge_targets
                 has_outgoing = node_id in edge_sources
-                
                 if not has_incoming and not has_outgoing:
                     raise ValueError(f"Orphaned node detected: {node_id}")
                 elif not has_incoming:
@@ -189,15 +186,10 @@ class GraphCompiler:
         
         # Check topological ordering (this will raise if there are cycles)
         topological_order = self._topological_sort()
-        print(f"✓ Graph topology validated. Execution order: {topological_order}")
-        
         # Use dynamic state to avoid concurrent update conflicts
         workflow = StateGraph(GraphState)
         start_node_id = self._get_start_node()
         end_node_id = self._get_end_node()
-
-        print(f"✓ Found start node: {start_node_id}")
-        print(f"✓ Found end node: {end_node_id}")
 
         # Add all nodes to the graph
         for node_id, node_config in self.nodes.items():
@@ -208,14 +200,13 @@ class GraphCompiler:
         
         # Set the single start node as entry point
         workflow.set_entry_point(start_node_id)
-        print(f"✓ Set entry point: {start_node_id}")
 
         # Analyze edges to handle multiple input edges properly
         # Group edges by target to detect nodes with multiple inputs
         edges_by_target = {}
         for edge in self.parsed_graph.edges:
             source_node = self.nodes[edge.source]
-            if source_node.type != NodeType.BRANCH:  # Skip branch nodes for now
+            if source_node.type not in (NodeType.BRANCH, NodeType.HUMAN_IN_LOOP):  # Skip branch nodes for now
                 target = edge.target
                 if target not in edges_by_target:
                     edges_by_target[target] = []
@@ -232,22 +223,17 @@ class GraphCompiler:
                 # Multiple inputs - use list syntax for LangGraph
                 workflow.add_edge(sources, target)
                 regular_edges.append(f"{sources} -> {target}")
-        
-        print(f"✓ Added {len(regular_edges)} regular edges")
-
         # Add conditional edges for branch and human-in-loop nodes
         branch_edges = []
         for node_id, node_config in self.nodes.items():
             if node_config.type in [NodeType.BRANCH, NodeType.HUMAN_IN_LOOP]:
                 instance = self.node_instances[node_id]
-                
                 # Find the edges from this conditional node
                 conditional_edges_for_node = [e for e in self.parsed_graph.edges if e.source == node_id]
                 path_map = {
                     edge.source_handle or "default": edge.target 
                     for edge in conditional_edges_for_node
                 }
-                
                 # LangGraph requires a mapping function that returns the path key
                 def create_condition_func(inst):
                     def condition_func(state):
@@ -262,13 +248,8 @@ class GraphCompiler:
                 
                 branch_edges.extend([f"{node_id} -[{handle}]-> {target}" 
                                    for handle, target in path_map.items()])
-        
-        print(f"✓ Added {len(branch_edges)} conditional edges")
-
         # Connect the single end node to LangGraph's END
         workflow.add_edge(end_node_id, END)
-        print(f"✓ Connected end node {end_node_id} to END")
-
         # Handle nodes that don't connect to explicit end nodes
         nodes_with_outgoing = {edge.source for edge in self.parsed_graph.edges}
         nodes_with_outgoing.update(node_id for node_id, config in self.nodes.items() 
@@ -279,15 +260,5 @@ class GraphCompiler:
                 node_id not in nodes_with_outgoing):
                 # This is a leaf node that should connect to END
                 workflow.add_edge(node_id, END)
-                print(f"✓ Connected orphaned leaf node {node_id} to END")
-
-        print("✓ Graph compilation completed successfully")
-        
-        # Only use checkpointer if we have human-in-loop nodes
-        has_hilp_nodes = any(node_config.type == NodeType.HUMAN_IN_LOOP 
-                           for node_config in self.nodes.values())
-        
-        if has_hilp_nodes:
-            return workflow.compile(checkpointer=self.checkpointer)
-        else:
-            return workflow.compile() 
+    
+        return workflow.compile(checkpointer=self.checkpointer)
