@@ -14,8 +14,8 @@ import { NodeData } from './types';
 import { StartNode } from './components/StartNode';
 import { EndNode } from './components/EndNode';
 
-// 定义Badge颜色类型
-type BadgeColor = 'gray' | 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan' | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'fuchsia' | 'pink' | 'rose';
+// 定义Badge颜色类型 - 使用Radix UI实际支持的颜色
+type BadgeColor = 'gray' | 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'teal' | 'cyan' | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'pink' | 'ruby' | 'gold' | 'bronze' | 'brown' | 'tomato' | 'crimson' | 'plum' | 'iris';
 
 // 定义节点样式配置类型
 interface NodeStyleConfig {
@@ -180,7 +180,7 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
                 <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
                   Condition {index + 1}
                 </Text>
-                <Badge size="1" variant="soft" color={style.badgeColor as BadgeColor}>
+                <Badge size="1" variant="soft" color={style.badgeColor}>
                   <Text size="1" style={{ fontFamily: 'inherit' }}>
                     {condition.field || 'Field'} {condition.operator || '='} {String(condition.value).slice(0, 8)}
                   </Text>
@@ -251,7 +251,7 @@ const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
               <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
                 Message
               </Text>
-              <Badge size="1" variant="soft" color={style.badgeColor as BadgeColor}>
+              <Badge size="1" variant="soft" color={style.badgeColor}>
                 <Text size="1" style={{ fontFamily: 'inherit' }}>
                   {config.message?.slice(0, 10) + (config.message?.length > 10 ? '...' : '') || 'Pending'}
                 </Text>
