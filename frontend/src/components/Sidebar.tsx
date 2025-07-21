@@ -70,28 +70,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
     <div className={`${isCollapsed ? 'w-16' : 'w-48'} bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in transition-all duration-300 ease-in-out`}>
       {/* Header */}
       <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-b border-[var(--color-border-primary)] ${isCollapsed ? 'h-12' : 'h-12'} flex items-center`}>
-        <div className="flex items-center gap-2 w-full">
-          {isCollapsed ? (
-            <Text className="text-white mx-auto" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
+        {isCollapsed ? (
+          <div className="w-full flex items-center justify-center relative">
+            <Text className="text-white" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
               G
             </Text>
-          ) : (
+            <button
+              onClick={toggleCollapse}
+              className="absolute right-0 p-1 hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
+              title="展开侧边栏"
+            >
+              <ChevronRightIcon className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 w-full">
             <Heading size="3" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
               GraGraf
             </Heading>
-          )}
-          <button
-            onClick={toggleCollapse}
-            className="ml-auto p-1 hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
-            title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
-          >
-            {isCollapsed ? (
-              <ChevronRightIcon className="w-4 h-4 text-white" />
-            ) : (
+            <button
+              onClick={toggleCollapse}
+              className="ml-auto p-1 hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
+              title="收起侧边栏"
+            >
               <ChevronLeftIcon className="w-4 h-4 text-white" />
-            )}
-          </button>
-        </div>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Node Library */}
