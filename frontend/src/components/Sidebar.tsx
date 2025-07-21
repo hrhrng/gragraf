@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Text, Heading, Card, Badge, ScrollArea } from '@radix-ui/themes';
+import { Text, Card } from '@radix-ui/themes';
 import { Node } from 'reactflow';
 import { 
-  PlusIcon, 
   ComponentInstanceIcon, 
   ExitIcon,
   GlobeIcon,
@@ -104,9 +103,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
             </div>
           ) : (
             <div className="flex items-center gap-2 w-full">
-              <Heading size="3" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
+              <Text className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
                 GraGraf
-              </Heading>
+              </Text>
               <button
                 onClick={toggleCollapse}
                 className="ml-auto p-1 hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
@@ -120,15 +119,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
 
         {/* Node Library */}
         <div className={`flex-1 ${isCollapsed ? 'p-2' : 'p-3'} overflow-visible`}>
-          {!isCollapsed && (
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <PlusIcon className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-              <Heading size="1" className="text-white">
-                Add Nodes
-              </Heading>
-            </div>
-          )}
-          
           {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
           <div className="h-full overflow-y-auto overflow-x-visible">
             <div className={`${isCollapsed ? 'space-y-2 pt-2' : 'space-y-1 px-1 pt-1'}`}>
