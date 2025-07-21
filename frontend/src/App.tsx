@@ -14,6 +14,7 @@ import ReactFlow, {
   EdgeChange,
   Connection,
   BackgroundVariant,
+  useReactFlow
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Sidebar } from './components/Sidebar';
@@ -24,7 +25,7 @@ import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
 import { WorkflowListDialog } from './components/WorkflowListDialog';
 import { ApprovalModal } from './components/ApprovalModal';
 import { Button } from '@radix-ui/themes';
-import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon } from '@radix-ui/react-icons';
+import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon, BorderSplitIcon } from '@radix-ui/react-icons';
 import { workflowApi, Workflow } from './services/workflowApi';
 
 // Map frontend node types to backend expected types
@@ -70,6 +71,8 @@ function App() {
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
 
+  const reactFlowInstance = useReactFlow();
+
   const onNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {
       // Filter out deletion of start and end nodes
@@ -99,22 +102,33 @@ function App() {
   );
 
   const onAddNode = (type: string, label: string) => {
+    // 获取当前viewport中心点的画布坐标
+    let position = { x: 400, y: 300 };
+    if (reactFlowInstance && reactFlowInstance.getViewport) {
+      const { x, y, zoom } = reactFlowInstance.getViewport();
+      // 画布中心点（以容器宽高一半为中心，逆变换到画布坐标）
+      const container = document.querySelector('.react-flow');
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        position = {
+          x: (centerX - x) / zoom,
+          y: (centerY - y) / zoom
+        };
+      }
+    }
     const newNode: Node<NodeData> = {
       id: `${type}_${nodes.length + 1}`,
       type,
-      position: { 
-        x: Math.random() * 600 + 200, 
-        y: Math.random() * 400 + 200 
-      },
+      position,
       data: { 
         label, 
         config: {} 
       },
     };
     setNodes((nds) => nds.concat(newNode));
-    
-    // Auto-select the new node
-    setSelectedNode(newNode);
+    // 不自动选中
   };
 
   const onNodeClick = (_: React.MouseEvent, node: Node) => {
@@ -733,6 +747,53 @@ function App() {
     setResult(null);
   };
 
+  // 自动整理工作流节点（横向分层，分支上下分散）
+  const autoLayout = () => {
+    // 1. 构建节点和边的映射
+    const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
+    const outEdges: Record<string, string[]> = {};
+    const inDegree: Record<string, number> = {};
+    nodes.forEach(n => { inDegree[n.id] = 0; outEdges[n.id] = []; });
+    edges.forEach(e => {
+      outEdges[e.source].push(e.target);
+      inDegree[e.target] = (inDegree[e.target] || 0) + 1;
+    });
+
+    // 2. 拓扑排序分层
+    const layers = [];
+    let queue = nodes.filter(n => inDegree[n.id] === 0).map(n => n.id);
+    let visited = new Set();
+    while (queue.length > 0) {
+      const layer = [];
+      const nextQueue = [];
+      for (const nodeId of queue) {
+        if (visited.has(nodeId)) continue;
+        visited.add(nodeId);
+        layer.push(nodeId);
+        for (const tgt of outEdges[nodeId]) {
+          inDegree[tgt]--;
+          if (inDegree[tgt] === 0) nextQueue.push(tgt);
+        }
+      }
+      if (layer.length > 0) layers.push(layer);
+      queue = nextQueue;
+    }
+    // 3. 横向分层布局：每层纵向排列，整体从左到右
+    const spacingX = 260;
+    const spacingY = 140;
+    let arrangedNodes = [...nodes];
+    let x0 = 200;
+    layers.forEach((layer, i) => {
+      const totalHeight = (layer.length - 1) * spacingY;
+      layer.forEach((nodeId, j) => {
+        const x = x0 + i * spacingX;
+        const y = 200 + j * spacingY - totalHeight / 2;
+        arrangedNodes = arrangedNodes.map(n => n.id === nodeId ? { ...n, position: { x, y } } : n);
+      });
+    });
+    setNodes(arrangedNodes);
+  };
+
   return (
     <div className="flex h-screen w-screen bg-[var(--color-bg-primary)] overflow-hidden">
       <Sidebar 
@@ -887,8 +948,8 @@ function App() {
         onRunCancel={handleRunCancel}
       />
       
-      {/* Bottom Run Button */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+      {/* Bottom Run Button + Auto Layout Icon */}
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4">
         <Button 
           onClick={handleRunClick}
           size="3"
@@ -898,6 +959,16 @@ function App() {
         >
           <PlayIcon className="w-4 h-4 mr-2" />
           Run Workflow
+        </Button>
+        <Button
+          onClick={autoLayout}
+          size="3"
+          variant="ghost"
+          color="gray"
+          aria-label="自动整理"
+          className="rounded-full flex items-center justify-center border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-tertiary)]"
+        >
+          <BorderSplitIcon className="w-6 h-6" />
         </Button>
       </div>
 

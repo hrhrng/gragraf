@@ -115,37 +115,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
 
   return (
     <div className="fixed right-4 top-4 bottom-4 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          {nodeInfo && (
-            <>
-              <span className="text-xl">{nodeInfo.icon}</span>
-              <div>
-                <Heading size="3">{nodeInfo.label}</Heading>
-                <Text size="2" className="text-gray-500">
-                  {selectedNode?.id || '配置面板'}
-                </Text>
-              </div>
-            </>
-          )}
-          {!selectedNode && (
-            <>
-              <TestIcon className="w-5 h-5 text-blue-500" />
-              <Heading size="3">工作流管理</Heading>
-            </>
-          )}
-        </div>
-        <Button 
-          variant="ghost" 
-          size="2" 
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          <Cross2Icon className="w-4 h-4" />
-        </Button>
-      </div>
-
+      {/* 移除Header部分，直接渲染内容 */}
       {/* Content */}
       <div className="flex-1 flex flex-col">
         <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
@@ -170,47 +140,13 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
                 {renderConfigForm()}
               </ScrollArea>
             </Tabs.Content>
-
-            <Tabs.Content value="run" className="h-full p-4">
-              <div className="space-y-4">
-                {/* Run Button */}
-                <Card className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Heading size="3">执行工作流</Heading>
-                      <Badge variant="outline" color={nodes.length > 0 ? 'green' : 'gray'}>
-                        {nodes.length} 个节点
-                      </Badge>
-                    </div>
-                    <Button 
-                      onClick={onRunWorkflow}
-                      disabled={isRunning || nodes.length === 0}
-                      className="w-full"
-                      size="3"
-                    >
-                      {isRunning ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                          执行中...
-                        </>
-                      ) : (
-                        <>
-                          <TestIcon className="w-4 h-4 mr-2" />
-                          开始执行
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </Card>
-
-                {/* Results */}
-                <div className="flex-1">
-                  <WorkflowResult 
-                    result={executionResults}
-                    isLoading={isRunning}
-                  />
-                </div>
-              </div>
+            <Tabs.Content value="run" className="h-full">
+              {executionResults && <WorkflowResult result={executionResults} isLoading={isRunning} />}
+              {onRunWorkflow && (
+                <Button onClick={onRunWorkflow} disabled={isRunning} className="mt-4">
+                  {isRunning ? '运行中...' : '运行工作流'}
+                </Button>
+              )}
             </Tabs.Content>
           </div>
         </Tabs.Root>

@@ -5,6 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Theme } from '@radix-ui/themes';
 import '@radix-ui/themes/styles.css';
+import { ReactFlowProvider } from 'reactflow';
 
 // 全局错误处理 - 捕获并忽略 ResizeObserver 错误
 // 这是一个已知的 Radix UI Popover 组件问题，不影响功能
@@ -56,7 +57,9 @@ root.render(
       radius="medium"
       scaling="100%"
     >
-      <App />
+      <ReactFlowProvider>
+        <App />
+      </ReactFlowProvider>
     </Theme>
   </React.StrictMode>
 );

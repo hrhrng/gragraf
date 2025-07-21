@@ -95,46 +95,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
 
   return (
     <div className="w-96 bg-[var(--color-bg-secondary)] border-l border-[var(--color-border-primary)] flex flex-col h-full animate-fade-in">
-      {/* Header */}
-      <div className="p-6 border-b border-[var(--color-border-primary)]">
-        <div className="flex items-center gap-3 mb-3">
-          {selectedNode.type === 'end' ? (
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: '#d9422433', border: '1px solid #d94224' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d94224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 17L7 7"/><path d="M7 17V7h10"/></svg>
-            </div>
-          ) : (
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${nodeInfo.color}-500/10 border border-${nodeInfo.color}-500/20`}>
-              <GearIcon className={`w-5 h-5 text-${nodeInfo.color}-400`} />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <Heading size="3" className="text-white">
-              {selectedNode.data.label}
-            </Heading>
-            <Text size="1" className="text-[var(--color-text-secondary)]">
-              {nodeInfo.description}
-            </Text>
-          </div>
-          {selectedNode.type === 'end' ? (
-            <Badge size="1" style={{ background: '#d9422422', color: '#d94224' }} variant="soft">
-              <Text size="1">end</Text>
-            </Badge>
-          ) : (
-            <Badge size="1" color={nodeInfo.color as any} variant="soft">
-              <Text size="1">{selectedNode.type}</Text>
-            </Badge>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
-          <Text size="1">ID:</Text>
-          <Text size="1" className="font-mono bg-[var(--color-bg-tertiary)] px-2 py-1 rounded">
-            {selectedNode.id}
-          </Text>
-        </div>
-      </div>
-
-      {/* Available Variables */}
+      {/* 移除Header部分，直接渲染可用变量和配置表单 */}
       {availableVariables.length > 0 && (
         <div className="p-6 border-b border-[var(--color-border-primary)]">
           <Text size="2" weight="medium" className="text-white mb-3 block">
