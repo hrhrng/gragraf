@@ -13,6 +13,7 @@ class NodeType(str, Enum):
 
     KNOWLEDGE_BASE = "knowledge_base"
     BRANCH = "branch"
+    HUMAN_IN_LOOP = "human_in_loop"
     START = "start"
     END = "end"
 

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from .compiler import GraphCompiler
 from .schemas.graph import Graph
 from .utils.templating import get_debug_info
@@ -10,7 +11,7 @@ import logging
 import json
 import asyncio
 from datetime import datetime
-from typing import Dict, Any, AsyncGenerator
+from typing import Dict, Any, AsyncGenerator, Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -62,51 +63,117 @@ async def shutdown_event():
 
 app.include_router(workflows_router)
 
-@app.post("/run")
-def execute_graph(dsl: Graph):
-    """Execute workflow synchronously."""
-    try:
-        compiler = GraphCompiler(dsl.model_dump())
-        app_instance = compiler.compile()
-        result = app_instance.invoke({})
-        
-        return {
-            "status": "success",
-            "result": result,
-            "timestamp": datetime.now().isoformat()
-        }
-    except Exception as e:
-        logger.error(f"Execution failed: {e}")
-        return {
-            "status": "error",
-            "error": str(e),
-            "timestamp": datetime.now().isoformat()
-        }
+
+
+class StreamRequest(BaseModel):
+    dsl: Graph
+    thread_id: Optional[str] = None
+    human_input: Optional[Dict[str, Any]] = None
+    runtime_inputs: Optional[Dict[str, Any]] = None  # 分离的运行时输入
 
 @app.post("/run/stream")
-async def execute_graph_stream(dsl: Graph):
-    """Execute workflow with streaming updates."""
+async def execute_graph_stream(request: StreamRequest):
+    """Execute workflow with streaming updates and human-in-loop support."""
     async def event_generator() -> AsyncGenerator[str, None]:
+        # Ensure we have a thread_id
+        thread_id = request.thread_id or f"thread_{datetime.now().timestamp()}_{id(request)}"
+        logger.info(f"Executing workflow with thread_id: {thread_id}")
+        
         try:
             # Send start event
-            yield f"data: {json.dumps({'type': 'start', 'timestamp': datetime.now().isoformat()})}\n\n"
+            yield f"data: {json.dumps({'type': 'start', 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
             
             # Execute workflow
-            compiler = GraphCompiler(dsl.model_dump())
+            dsl_data = request.dsl.model_dump()
+            
+            # Inject runtime inputs into start node if this is initial execution
+            if request.runtime_inputs and not request.human_input:
+                for node in dsl_data['nodes']:
+                    if node['type'] == 'start':
+                        node['config'].update(request.runtime_inputs)
+                        break
+                        
+            compiler = GraphCompiler(dsl_data)
             app_instance = compiler.compile()
             
-            # Stream execution
-            final_state = {}
-            for chunk in app_instance.stream({}):
-                final_state.update(chunk)
-                yield f"data: {json.dumps({'type': 'progress', 'data': chunk, 'timestamp': datetime.now().isoformat()})}\n\n"
+            # Configure for streaming with thread support
+            config = {"configurable": {"thread_id": thread_id}}
             
-            # Send completion event
-            yield f"data: {json.dumps({'type': 'complete', 'result': final_state, 'timestamp': datetime.now().isoformat()})}\n\n"
+            if request.human_input:
+                # This is a resume operation - provide human input and let LangGraph resume from checkpoint
+                logger.info(f"Resuming workflow with human input: {request.human_input}")
+                
+                # For resuming, we should use stream with None as input to let LangGraph continue from checkpoint
+                # and update the state with human input
+                try:
+                    # Update the state with human input first
+                    app_instance.update_state(config, request.human_input)
+                    logger.info(f"Updated state with human input")
+                except Exception as e:
+                    logger.error(f"Failed to update state: {e}")
+                
+                # Stream execution starting from where it was interrupted
+                final_state = {}
+                interrupt_info = None
+                
+                # Resume from checkpoint - use None to continue from where it stopped
+                for chunk in app_instance.stream(None, config):
+                    final_state.update(chunk)
+                    
+                    # Check for human-in-loop interrupts
+                    interrupt_info = None
+                    for node_id, node_data in chunk.items():
+                        if isinstance(node_data, dict):
+                            for key, value in node_data.items():
+                                if key.endswith('_hilp_info'):
+                                    interrupt_info = value
+                                    break
+                        if interrupt_info:
+                            break
+                    
+                    if interrupt_info:
+                        yield f"data: {json.dumps({'type': 'human_input_required', 'interrupt_info': interrupt_info, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+                        return  # Stop execution, wait for human input
+                    
+                    yield f"data: {json.dumps({'type': 'progress', 'data': chunk, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+                
+                # Send completion event
+                yield f"data: {json.dumps({'type': 'complete', 'result': final_state, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+                
+            else:
+                # This is a new execution - start from beginning
+                logger.info(f"Starting new workflow execution")
+                
+                # Stream execution
+                final_state = {}
+                interrupt_info = None
+                
+                for chunk in app_instance.stream({}, config):
+                    final_state.update(chunk)
+                    
+                    # Check for human-in-loop interrupts
+                    interrupt_info = None
+                    for node_id, node_data in chunk.items():
+                        if isinstance(node_data, dict):
+                            for key, value in node_data.items():
+                                if key.endswith('_hilp_info'):
+                                    interrupt_info = value
+                                    break
+                        if interrupt_info:
+                            break
+                    
+                    if interrupt_info:
+                        yield f"data: {json.dumps({'type': 'human_input_required', 'interrupt_info': interrupt_info, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+                        return  # Stop execution, wait for human input
+                    
+                    yield f"data: {json.dumps({'type': 'progress', 'data': chunk, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
+                
+                # Send completion event
+                yield f"data: {json.dumps({'type': 'complete', 'result': final_state, 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
             
         except Exception as e:
             logger.error(f"Streaming execution failed: {e}")
-            yield f"data: {json.dumps({'type': 'error', 'error': str(e), 'timestamp': datetime.now().isoformat()})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'error': str(e), 'timestamp': datetime.now().isoformat(), 'thread_id': thread_id})}\n\n"
     
     return StreamingResponse(
         event_generator(), 
@@ -117,37 +184,6 @@ async def execute_graph_stream(dsl: Graph):
             "Content-Type": "text/event-stream",
         }
     )
-
-@app.get("/debug/template-info")
-def get_template_debug_info(
-    config_type: str = "AgentConfig",
-    system_prompt: str = "You are a {{role}} assistant",
-    user_prompt: str = "Help with {{task}}",
-    name: str = "test",
-    greeting: str = "hello"
-):
-    """Debug endpoint for template variable analysis."""
-    try:
-        from .nodes.agent import AgentConfig
-        
-        mock_config = AgentConfig(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt
-        )
-        
-        mock_state = {
-            "name": name,
-            "greeting": greeting,
-            "role": "assistant",
-            "task": "analysis"
-        }
-        
-        debug_info = get_debug_info(mock_config, mock_state)
-        return debug_info
-        
-    except Exception as e:
-        logger.error(f"Debug info generation failed: {e}")
-        return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

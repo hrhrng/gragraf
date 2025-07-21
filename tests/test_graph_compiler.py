@@ -37,8 +37,9 @@ def test_compiled_graph_execution(mock_http_execute, sample_graph_dsl):
     # Verify that the http node's execute method was called
     mock_http_execute.assert_called_once()
     
-    # Verify the final state
-    assert final_state == {"http_output": "mocked_response"}
+    # Verify the final state - now includes end node outputs
+    assert "http_output" in final_state
+    assert final_state["http_output"] == "mocked_response"
 
 @patch('gragraf.nodes.branch.BranchNode.execute')
 @patch('gragraf.nodes.http_request.HttpRequestNode.execute')

@@ -22,6 +22,7 @@ import { NodeData } from './types';
 import RightPanel from './components/RightPanel';
 import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
 import { WorkflowListDialog } from './components/WorkflowListDialog';
+import { ApprovalModal } from './components/ApprovalModal';
 import { Button } from '@radix-ui/themes';
 import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon } from '@radix-ui/react-icons';
 import { workflowApi, Workflow } from './services/workflowApi';
@@ -34,7 +35,8 @@ const mapNodeTypeToBackend = (frontendType: string): string => {
     'start': 'start',
     'end': 'end',
     'agent': 'agent',
-    'branch': 'branch'
+    'branch': 'branch',
+    'humanInLoop': 'human_in_loop'
   };
   
   return typeMapping[frontendType] || frontendType;
@@ -62,6 +64,11 @@ function App() {
   // 全局成功提示状态
   const [globalSuccess, setGlobalSuccess] = useState<string>('');
   const [showGlobalSuccess, setShowGlobalSuccess] = useState(false);
+  
+  // Human-in-Loop 状态
+  const [humanInputRequired, setHumanInputRequired] = useState<any>(null);
+  const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -144,11 +151,15 @@ function App() {
     setIsLoading(true);
     setResult(null);
     
+    // Generate a unique thread ID for this workflow execution
+    const threadId = `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('Generated thread ID:', threadId);
+    
     const dsl = {
       nodes: nodes.map(node => ({
         id: node.id,
         type: mapNodeTypeToBackend(node.type || 'unknown'),
-        config: node.type === 'start' ? { ...node.data.config, ...runData } : node.data.config,
+        config: node.data.config, // 不再混入运行时数据
       })),
       edges: edges.map(edge => ({
         id: edge.id,
@@ -158,40 +169,80 @@ function App() {
       }))
     };
 
+    // Log HiL node edges for debugging
+    const hilEdges = edges.filter(edge => {
+      const sourceNode = nodes.find(n => n.id === edge.source);
+      return sourceNode?.type === 'humanInLoop';
+    });
+    if (hilEdges.length > 0) {
+      console.log('Human-in-Loop edges:', hilEdges);
+    }
+
     // 尝试使用流式执行
     try {
-      await executeWithStreaming(dsl);
+      await executeWithStreaming(dsl, threadId, undefined, runData);
     } catch (streamError) {
       console.warn('Streaming failed, falling back to regular execution:', streamError);
       await executeRegular(dsl);
     }
   };
 
-  const executeWithStreaming = async (dsl: any): Promise<void> => {
+  const executeWithStreaming = async (dsl: any, threadId?: string, humanInput?: any, runtimeInputs?: any): Promise<void> => {
+    console.log('executeWithStreaming called with threadId:', threadId, 'humanInput:', !!humanInput, 'runtimeInputs:', !!runtimeInputs);
+    
     return new Promise(async (resolve, reject) => {
       let hasStarted = false;
       
-      // 初始化结果状态
-      const initialResult = {
-        status: 'running' as const,
-        startTime: new Date().toISOString(),
-        endTime: null,
-        duration: 0,
-        nodes: [] as any[],
-        finalResult: null,
-        error: null,
-        totalNodes: nodes.length, // 使用实际的节点数量
-        completedNodes: 0,
-        globalLogs: [] as string[]
-      };
-      setResult(initialResult);
+      // 初始化结果状态（如果不是恢复执行）
+      if (!humanInput) {
+        const initialResult = {
+          status: 'running' as const,
+          startTime: new Date().toISOString(),
+          endTime: null,
+          duration: 0,
+          nodes: [] as any[],
+          finalResult: null,
+          error: null,
+          totalNodes: nodes.length, // 使用实际的节点数量
+          completedNodes: 0,
+          globalLogs: [] as string[]
+        };
+        setResult(initialResult);
+      } else {
+        // 恢复执行时，确保有一个结果状态显示
+        setResult((currentResult: any) => {
+          if (!currentResult) {
+            return {
+              status: 'running' as const,
+              startTime: new Date().toISOString(),
+              endTime: null,
+              duration: 0,
+              nodes: [] as any[],
+              finalResult: null,
+              error: null,
+              totalNodes: nodes.length,
+              completedNodes: 0,
+              globalLogs: []
+            };
+          }
+          return { ...currentResult, status: 'running' };
+        });
+      }
 
       try {
+        // 构建请求体
+        const requestBody = {
+          dsl,
+          thread_id: threadId,
+          human_input: humanInput,
+          runtime_inputs: runtimeInputs
+        };
+
         // 使用 fetch 的 ReadableStream 来处理流式响应
         const response = await fetch('/run/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dsl),
+          body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -224,14 +275,39 @@ function App() {
             if (line.startsWith('data: ')) {
               try {
                 const eventData = JSON.parse(line.slice(6));
-                console.log('SSE Event:', eventData);
+                if (eventData.type === 'human_input_required') {
+                  console.log('SSE Event:', eventData);
+                }
+
+                // Handle human input required events immediately
+                if (eventData.type === 'human_input_required') {
+                  console.log('Processing human_input_required event immediately:', eventData);
+                  setHumanInputRequired(eventData.interrupt_info);
+                  setCurrentThreadId(eventData.thread_id);
+                  setShowApprovalModal(true);
+                  console.log('Modal should show now');
+                  
+                  // Update result status if result exists
+                  setResult((currentResult: any) => {
+                    if (currentResult) {
+                      return { ...currentResult, status: 'waiting_for_approval' };
+                    }
+                    return currentResult;
+                  });
+                  return; // Skip the rest of the processing for this event
+                }
 
                 // 更新结果状态
                 setResult((currentResult: any) => {
-                  if (!currentResult) return initialResult;
-                  
-                  const newResult = { ...currentResult };
-                  
+                console.log('Current result exists:', !!currentResult, 'Event type:', eventData.type);
+                if (!currentResult) {
+                  console.log('No current result, skipping event processing');
+                  return currentResult;
+                }
+                
+                const newResult = { ...currentResult };
+                
+                console.log('Processing event type:', eventData.type);
                   switch (eventData.type) {
                     case 'start':
                     case 'execution_started':
@@ -296,6 +372,16 @@ function App() {
                         const end = new Date(newResult.endTime);
                         newResult.duration = end.getTime() - start.getTime();
                       }
+                      break;
+                      
+                    case 'human_input_required':
+                      // 处理 Human-in-Loop 中断
+                      console.log('Processing human_input_required event:', eventData);
+                      newResult.status = 'waiting_for_approval';
+                      setHumanInputRequired(eventData.interrupt_info);
+                      setCurrentThreadId(eventData.thread_id);
+                      setShowApprovalModal(true);
+                      console.log('Modal should show now');
                       break;
                   }
                   
@@ -385,6 +471,59 @@ function App() {
 
   const handleRunCancel = () => {
     setShowRunForm(false);
+  };
+
+  // Handle human approval/rejection
+  const handleHumanDecision = async (decision: 'approved' | 'rejected', comment: string) => {
+    console.log('handleHumanDecision called with:', { decision, comment, humanInputRequired, currentThreadId });
+    
+    if (!humanInputRequired || !currentThreadId) {
+      console.error('No human input required or thread ID available', { humanInputRequired, currentThreadId });
+      return;
+    }
+
+    const humanInput = {
+      [`${humanInputRequired.node_id}_human_input`]: {
+        decision,
+        comment
+      }
+    };
+
+    // Store required data before resetting state
+    const nodeId = humanInputRequired.node_id;
+    const threadId = currentThreadId;
+
+    console.log('Resuming workflow with Thread ID:', threadId);
+
+    // Reset HiL state
+    setHumanInputRequired(null);
+    setShowApprovalModal(false);
+
+    // Resume execution with human input - use empty DSL since LangGraph will restore from checkpoint
+    const emptyDsl = {
+      nodes: nodes.map(node => ({
+        id: node.id,
+        type: mapNodeTypeToBackend(node.type || 'unknown'),
+        config: node.data.config,
+      })),
+      edges: edges.map(edge => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        source_handle: edge.sourceHandle
+      }))
+    };
+
+    // Resume execution with human input
+    try {
+      await executeWithStreaming(emptyDsl, threadId, humanInput);
+    } catch (error) {
+      console.error('Error resuming workflow:', error);
+      setGlobalError('Failed to resume workflow after human input');
+      setShowGlobalError(true);
+    } finally {
+      setCurrentThreadId(null);
+    }
   };
 
   // Deselect node when clicking on empty space
@@ -548,7 +687,8 @@ function App() {
       'start': 'start',
       'end': 'end',
       'agent': 'agent',
-      'branch': 'branch'
+      'branch': 'branch',
+      'human_in_loop': 'humanInLoop'
     };
     
     if (dsl && dsl.nodes) {
@@ -772,6 +912,14 @@ function App() {
         open={listDialogOpen}
         onOpenChange={setListDialogOpen}
         onLoadWorkflow={handleLoadWorkflow}
+      />
+
+      {/* Human-in-Loop Approval Modal */}
+      <ApprovalModal
+        open={showApprovalModal}
+        onOpenChange={setShowApprovalModal}
+        interruptInfo={humanInputRequired}
+        onDecision={handleHumanDecision}
       />
 
       {/* 全局错误提示 */}

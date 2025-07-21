@@ -7,7 +7,8 @@ import {
   BookmarkIcon, 
   BorderSplitIcon,
   FileTextIcon,
-  QuestionMarkIcon
+  QuestionMarkIcon,
+  CheckCircledIcon
 } from '@radix-ui/react-icons';
 import { NodeData } from './types';
 import { StartNode } from './components/StartNode';
@@ -19,6 +20,7 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
       case 'agent': return <PersonIcon />;
       case 'http request': return <GlobeIcon />;
       case 'knowledge base': return <FileTextIcon />;
+      case 'human approval': return <CheckCircledIcon />;
       default: return <QuestionMarkIcon />;
     }
   };
@@ -28,6 +30,7 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
       case 'agent': return 'blue';
       case 'http request': return 'green';
       case 'knowledge base': return 'purple';
+      case 'human approval': return 'orange';
       default: return 'gray';
     }
   };
@@ -168,14 +171,87 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
   );
 };
 
+const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
+  const config = data.config || {};
+  
+  return (
+    <div className="relative transition-all duration-200">
+      <Handle 
+        type="target" 
+        position={Position.Left}
+        className="w-3 h-3 border-2 border-white bg-[var(--color-bg-tertiary)]"
+      />
+      
+      <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
+        selected 
+          ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' 
+          : 'border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/50'
+      } transition-all duration-200`}>
+        <div className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-500/10 border border-orange-500/20">
+              <CheckCircledIcon className="w-4 h-4 text-orange-400" />
+            </div>
+            <Text size="3" weight="medium" className="text-white flex-1">
+              {data.label}
+            </Text>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Text size="1" className="text-[var(--color-text-secondary)]">
+                Message
+              </Text>
+              <Badge size="1" variant="soft" color="orange">
+                <Text size="1">
+                  {config.message ? config.message.slice(0, 15) + (config.message.length > 15 ? '...' : '') : 'Not set'}
+                </Text>
+              </Badge>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Text size="1" className="text-[var(--color-text-secondary)]">
+                Required
+              </Text>
+              <Badge size="1" variant="soft" color={config.require_comment ? "orange" : "gray"}>
+                <Text size="1">
+                  {config.require_comment ? 'Yes' : 'No'}
+                </Text>
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </Card>
+      
+      {/* Approval handle */}
+      <Handle 
+        type="source" 
+        position={Position.Right}
+        id="approval"
+        style={{ top: '40%' }}
+        className="w-3 h-3 border-2 border-green-400 bg-green-500/20"
+      />
+      
+      {/* Rejection handle */}
+      <Handle 
+        type="source" 
+        position={Position.Right}
+        id="rejection"
+        style={{ top: '60%' }}
+        className="w-3 h-3 border-2 border-red-400 bg-red-500/20"
+      />
+    </div>
+  );
+};
+
 export const nodeTypes = {
   start: StartNode,
   end: EndNode,
   httpRequest: BaseNode,
   agent: BaseNode,
-
   knowledgeBase: BaseNode,
   branch: BranchNode,
+  humanInLoop: HumanInLoopNode,
 };
 
 export const initialNodes: Node<NodeData>[] = [

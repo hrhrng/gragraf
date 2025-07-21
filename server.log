@@ -1,0 +1,61 @@
+USER_AGENT environment variable not set, consider setting it to identify your requests.
+/Users/xiaoyang/Proj/gragraf/src/gragraf/server.py:37: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+/Users/xiaoyang/Proj/gragraf/src/gragraf/server.py:53: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("shutdown")
+INFO:     Started server process [93182]
+INFO:     Waiting for application startup.
+INFO:__main__:Initializing database...
+INFO:__main__:Database initialized successfully
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55323 - "POST /run/stream HTTP/1.1" 200 OK
+INFO:__main__:Executing workflow with thread_id: test_fix_thread
+INFO:__main__:Starting new workflow execution
+INFO:gragraf.compiler:Applying direct state update: {}
+INFO:gragraf.compiler:State after reducer: []
+INFO:gragraf.nodes.start:StartNode start_1: Set input = 你好鸭
+INFO:gragraf.nodes.start:StartNode start_1: Set additional input = 你好鸭
+INFO:gragraf.compiler:Applying direct state update: {'input': '你好鸭'}
+INFO:gragraf.compiler:State after reducer: ['input']
+INFO:gragraf.compiler:Applying direct state update: {'humanInLoop_5_hilp_info': {'node_id': 'humanInLoop_5', 'message': 'Please review and approve or reject.', 'input_label': 'Comments', 'approval_label': 'Approve', 'rejection_label': 'Reject', 'require_comment': False, 'type': 'human_in_loop_interrupt'}, '__interrupt__': 'human_input_required_humanInLoop_5'}
+INFO:gragraf.compiler:State after reducer: ['input', 'humanInLoop_5_hilp_info', '__interrupt__']
+INFO:gragraf.compiler:Applying direct state update: {'humanInLoop_5_hilp_info': {'node_id': 'humanInLoop_5', 'message': 'Please review and approve or reject.', 'input_label': 'Comments', 'approval_label': 'Approve', 'rejection_label': 'Reject', 'require_comment': False, 'type': 'human_in_loop_interrupt'}, '__interrupt__': 'human_input_required_humanInLoop_5'}
+INFO:gragraf.compiler:State after reducer: ['input', 'humanInLoop_5_hilp_info', '__interrupt__']
+✓ Graph topology validated. Execution order: ['start_1', 'humanInLoop_5', 'agent_4', 'end_1']
+✓ Found start node: start_1
+✓ Found end node: end_1
+✓ Set entry point: start_1
+✓ Added 3 regular edges
+✓ Added 2 conditional edges
+✓ Connected end node end_1 to END
+✓ Graph compilation completed successfully
+INFO:     127.0.0.1:55325 - "POST /run/stream HTTP/1.1" 200 OK
+INFO:__main__:Executing workflow with thread_id: test_fix_thread
+INFO:__main__:Resuming workflow with human input: {'humanInLoop_5_human_input': {'decision': 'rejected', 'comment': ''}}
+INFO:gragraf.compiler:Applying direct state update: {'humanInLoop_5_human_input': {'decision': 'rejected', 'comment': ''}}
+INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input']
+INFO:__main__:Updated state with human input
+INFO:gragraf.compiler:Applying direct state update: {}
+INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input']
+INFO:gragraf.compiler:Applying direct state update: {'humanInLoop_5_decision': 'rejected', 'humanInLoop_5_comment': '', 'humanInLoop_5_user_input': {'decision': 'rejected', 'comment': ''}}
+INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input', 'humanInLoop_5_decision', 'humanInLoop_5_comment', 'humanInLoop_5_user_input']
+INFO:gragraf.compiler:Applying direct state update: {'humanInLoop_5_decision': 'rejected', 'humanInLoop_5_comment': '', 'humanInLoop_5_user_input': {'decision': 'rejected', 'comment': ''}}
+INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input', 'humanInLoop_5_decision', 'humanInLoop_5_comment', 'humanInLoop_5_user_input']
+ERROR:gragraf.utils.templating:Undefined variable in template '{{input}}': 'input' is undefined
+INFO:httpx:HTTP Request: POST https://api.openai-proxy.org/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:gragraf.compiler:Applying direct state update: {'agent_4_output': 'It seems like there was an error related to an undefined input. Could you please provide more context or clarify what you need help with? This will allow me to assist you better!'}
+INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input', 'humanInLoop_5_decision', 'humanInLoop_5_comment', 'humanInLoop_5_user_input', 'agent_4_output']
+INFO:gragraf.nodes.end:EndNode end_1: Collected what = It seems like there was an error related to an undefined input. Could you please provide more context or clarify what you need help with? This will allow me to assist you better!
+INFO:gragraf.compiler:Applying direct state update: {'end_1_outputs': {'what': 'It seems like there was an error related to an undefined input. Could you please provide more context or clarify what you need help with? This will allow me to assist you better!'}, 'outputs': {'what': 'It seems like there was an error related to an undefined input. Could you please provide more context or clarify what you need help with? This will allow me to assist you better!'}}
+INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input', 'humanInLoop_5_decision', 'humanInLoop_5_comment', 'humanInLoop_5_user_input', 'agent_4_output', 'end_1_outputs', 'outputs']

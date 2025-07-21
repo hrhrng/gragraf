@@ -9,7 +9,8 @@ import {
   BookmarkIcon,
   BorderSplitIcon,
   PersonIcon,
-  PlayIcon
+  PlayIcon,
+  CheckCircledIcon
 } from '@radix-ui/react-icons';
 import { NodeData } from '../types';
 
@@ -46,6 +47,13 @@ const nodeTypes = [
     icon: BorderSplitIcon, 
     color: 'yellow',
     description: 'Conditional branching'
+  },
+  { 
+    type: 'humanInLoop', 
+    label: 'Human Approval', 
+    icon: CheckCircledIcon, 
+    color: 'orange',
+    description: 'Human-in-the-loop approval'
   }
 ];
 

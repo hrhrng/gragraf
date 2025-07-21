@@ -1,6 +1,7 @@
-from typing import Dict, Any, TypedDict, List, Annotated
+from typing import Dict, Any, TypedDict, List, Annotated, Optional
 from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
+from langgraph.checkpoint.memory import MemorySaver
 from .parser import parse_graph
 from .schemas.graph import NodeType
 from .nodes.http_request import HttpRequestNode, HttpRequestConfig
@@ -8,6 +9,7 @@ from .nodes.http_request import HttpRequestNode, HttpRequestConfig
 from .nodes.branch import BranchNode, BranchConfig
 from .nodes.knowledge_base import KnowledgeBaseNode, KnowledgeBaseConfig
 from .nodes.agent import AgentNode, AgentConfig
+from .nodes.human_in_loop import HumanInLoopNode, HumanInLoopConfig
 from .nodes.start import StartNode
 from .nodes.end import EndNode
 
@@ -64,11 +66,12 @@ def state_reducer(x: Dict[str, Any], y: Dict[str, Any]) -> Dict[str, Any]:
 GraphState = Annotated[Dict[str, Any], state_reducer]
 
 class GraphCompiler:
-    def __init__(self, graph_dsl: Dict[str, Any]):
+    def __init__(self, graph_dsl: Dict[str, Any], checkpointer: Optional[MemorySaver] = None):
         self.graph_dsl = graph_dsl
         self.parsed_graph = parse_graph(graph_dsl)
         self.nodes = {node.id: node for node in self.parsed_graph.nodes}
         self.node_instances = {}
+        self.checkpointer = checkpointer or MemorySaver()
 
     def _create_node_instance(self, node_id: str):
         """Creates an instance of a node from its configuration."""
@@ -82,6 +85,9 @@ class GraphCompiler:
         elif node_type == NodeType.BRANCH:
             config = BranchConfig.model_validate(node_config.config)
             return BranchNode(node_id, config)
+        elif node_type == NodeType.HUMAN_IN_LOOP:
+            config = HumanInLoopConfig.model_validate(node_config.config)
+            return HumanInLoopNode(node_id, config)
         elif node_type == NodeType.KNOWLEDGE_BASE:
             config = KnowledgeBaseConfig.model_validate(node_config.config)
             return KnowledgeBaseNode(node_id, config)
@@ -229,28 +235,28 @@ class GraphCompiler:
         
         print(f"✓ Added {len(regular_edges)} regular edges")
 
-        # Add conditional edges for branch nodes
+        # Add conditional edges for branch and human-in-loop nodes
         branch_edges = []
         for node_id, node_config in self.nodes.items():
-            if node_config.type == NodeType.BRANCH:
-                branch_instance = self.node_instances[node_id]
+            if node_config.type in [NodeType.BRANCH, NodeType.HUMAN_IN_LOOP]:
+                instance = self.node_instances[node_id]
                 
-                # Find the edges from this branch node
-                branch_edges_for_node = [e for e in self.parsed_graph.edges if e.source == node_id]
+                # Find the edges from this conditional node
+                conditional_edges_for_node = [e for e in self.parsed_graph.edges if e.source == node_id]
                 path_map = {
                     edge.source_handle or "default": edge.target 
-                    for edge in branch_edges_for_node
+                    for edge in conditional_edges_for_node
                 }
                 
                 # LangGraph requires a mapping function that returns the path key
-                def create_branch_condition(branch_inst):
+                def create_condition_func(inst):
                     def condition_func(state):
-                        return branch_inst.get_decision(state)
+                        return inst.get_decision(state)
                     return condition_func
                 
                 workflow.add_conditional_edges(
                     node_id,
-                    create_branch_condition(branch_instance),
+                    create_condition_func(instance),
                     path_map
                 )
                 
@@ -266,14 +272,22 @@ class GraphCompiler:
         # Handle nodes that don't connect to explicit end nodes
         nodes_with_outgoing = {edge.source for edge in self.parsed_graph.edges}
         nodes_with_outgoing.update(node_id for node_id, config in self.nodes.items() 
-                                 if config.type == NodeType.BRANCH)
+                                 if config.type in [NodeType.BRANCH, NodeType.HUMAN_IN_LOOP])
         
         for node_id, node_config in self.nodes.items():
-            if (node_config.type not in [NodeType.START, NodeType.END, NodeType.BRANCH] and 
+            if (node_config.type not in [NodeType.START, NodeType.END, NodeType.BRANCH, NodeType.HUMAN_IN_LOOP] and 
                 node_id not in nodes_with_outgoing):
                 # This is a leaf node that should connect to END
                 workflow.add_edge(node_id, END)
                 print(f"✓ Connected orphaned leaf node {node_id} to END")
 
         print("✓ Graph compilation completed successfully")
-        return workflow.compile() 
+        
+        # Only use checkpointer if we have human-in-loop nodes
+        has_hilp_nodes = any(node_config.type == NodeType.HUMAN_IN_LOOP 
+                           for node_config in self.nodes.values())
+        
+        if has_hilp_nodes:
+            return workflow.compile(checkpointer=self.checkpointer)
+        else:
+            return workflow.compile() 

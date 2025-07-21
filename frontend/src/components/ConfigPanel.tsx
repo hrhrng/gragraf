@@ -5,9 +5,9 @@ import { GearIcon } from '@radix-ui/react-icons';
 import { NodeData } from '../types';
 import { HttpRequestConfigForm } from './HttpRequestConfigForm';
 import { AgentConfigForm } from './AgentConfigForm';
-
 import { KnowledgeBaseConfigForm } from './KnowledgeBaseConfigForm';
 import { BranchConfigForm } from './BranchConfigForm';
+import { HumanInLoopConfigForm } from './HumanInLoopConfigForm';
 import { StartConfigForm } from './StartConfigForm';
 import { EndConfigForm } from './EndConfigForm';
 
@@ -60,9 +60,9 @@ const getNodeTypeInfo = (nodeType: string | undefined) => {
     end: { color: 'red', description: 'Workflow exit point' },
     httpRequest: { color: 'blue', description: 'HTTP API calls' },
     agent: { color: 'violet', description: 'AI agent processing' },
-
     knowledgeBase: { color: 'cyan', description: 'Knowledge base queries' },
     branch: { color: 'yellow', description: 'Conditional branching' },
+    humanInLoop: { color: 'orange', description: 'Human approval required' },
   };
   return nodeTypeMap[nodeType || ''] || { color: 'gray', description: 'Node configuration' };
 };
@@ -178,6 +178,12 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
                 node={selectedNode} 
                 onConfigChange={handleConfigChange} 
                 availableVariables={availableVariables}
+            />
+          )}
+          {selectedNode.type === 'humanInLoop' && (
+            <HumanInLoopConfigForm 
+                node={selectedNode}
+                onConfigChange={handleConfigChange}
             />
           )}
         </div>

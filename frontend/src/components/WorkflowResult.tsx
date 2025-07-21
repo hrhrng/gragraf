@@ -27,7 +27,7 @@ interface NodeExecutionResult {
 }
 
 interface WorkflowExecutionResult {
-  status: 'idle' | 'running' | 'completed' | 'failed';
+  status: 'idle' | 'running' | 'completed' | 'failed' | 'waiting_for_approval';
   startTime?: string;
   endTime?: string;
   duration?: number;
@@ -78,7 +78,8 @@ const StatusBadge = ({ status }: { status: string }) => {
     running: { color: 'blue', label: '运行中' },
     completed: { color: 'green', label: '完成' },
     failed: { color: 'red', label: '失败' },
-    pending: { color: 'gray', label: '等待中' }
+    pending: { color: 'gray', label: '等待中' },
+    waiting_for_approval: { color: 'orange', label: '等待审批' }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.idle;
