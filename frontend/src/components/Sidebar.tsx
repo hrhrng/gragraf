@@ -59,21 +59,21 @@ const nodeTypes = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
   return (
-    <div className="w-64 bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in">
+    <div className="w-48 bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in">
       {/* Header */}
-      <div className="p-4 border-b border-[var(--color-border-primary)] h-14 flex items-center">
-        <div className="flex items-center gap-3 w-full">
-          <Heading size="4" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.75rem' }}>
+      <div className="p-3 border-b border-[var(--color-border-primary)] h-12 flex items-center">
+        <div className="flex items-center gap-2 w-full">
+          <Heading size="3" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
             GraGraf
           </Heading>
         </div>
       </div>
 
       {/* Node Library */}
-      <div className="flex-1 p-3 overflow-visible">
-        <div className="flex items-center gap-2 mb-3">
-          <PlusIcon className="w-4 h-4 text-[var(--color-accent)]" />
-          <Heading size="2" className="text-white">
+      <div className="flex-1 p-2.5 overflow-visible">
+        <div className="flex items-center gap-1.5 mb-2.5">
+          <PlusIcon className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+          <Heading size="1" className="text-white">
             Add Nodes
           </Heading>
         </div>
@@ -89,13 +89,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   className="group cursor-pointer relative transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:z-20 bg-[var(--color-bg-tertiary)] hover:border-[var(--color-accent)] border-[var(--color-border-primary)] animate-fade-in"
                   onClick={() => onAddNode(nodeType.type, nodeType.label)}
                 >
-                  <div className="px-2.5 py-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                  <div className="px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-5 h-5 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
                         <IconComponent className={`w-3 h-3 text-${nodeType.color}-400 transition-all`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Text size="1" weight="medium" className="text-white block">
+                        <Text size="1" weight="medium" className="text-white block truncate">
                           {nodeType.label}
                         </Text>
                       </div>
