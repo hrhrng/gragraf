@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
   };
 
   return (
-    <div className={`${isCollapsed ? 'w-12' : 'w-48'} bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in transition-all duration-300 ease-in-out`}>
+    <div className={`${isCollapsed ? 'w-16' : 'w-48'} bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in transition-all duration-300 ease-in-out`}>
       {/* Header */}
       <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-b border-[var(--color-border-primary)] ${isCollapsed ? 'h-12' : 'h-12'} flex items-center`}>
         <div className="flex items-center gap-2 w-full">
@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
       </div>
 
       {/* Node Library */}
-      <div className={`flex-1 ${isCollapsed ? 'p-1' : 'p-3'} overflow-visible`}>
+      <div className={`flex-1 ${isCollapsed ? 'p-2' : 'p-3'} overflow-visible`}>
         {!isCollapsed && (
           <div className="flex items-center gap-1.5 mb-2.5">
             <PlusIcon className="w-3.5 h-3.5 text-[var(--color-accent)]" />
@@ -107,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
         
         {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
         <div className="h-full overflow-y-auto overflow-x-visible">
-          <div className={`${isCollapsed ? 'space-y-1 px-1 pt-2' : 'space-y-1 px-1 pt-1'}`}>
+          <div className={`${isCollapsed ? 'space-y-2 pt-2' : 'space-y-1 px-1 pt-1'}`}>
             {nodeTypes.map((nodeType) => {
               const IconComponent = nodeType.icon;
               return (
@@ -118,9 +118,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   title={isCollapsed ? nodeType.label : undefined}
                 >
                   {isCollapsed ? (
-                    <div className="w-8 h-8 flex items-center justify-center">
-                      <div className={`w-8 h-8 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className={`w-4 h-4 text-${nodeType.color}-400 transition-all`} />
+                    <div className="w-10 h-10 flex items-center justify-center mx-auto">
+                      <div className={`w-10 h-10 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                        <IconComponent className={`w-5 h-5 text-${nodeType.color}-400 transition-all`} />
                       </div>
                     </div>
                   ) : (
