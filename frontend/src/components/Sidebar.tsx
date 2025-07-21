@@ -173,10 +173,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
       {isCollapsed && (
         <button
           onClick={toggleCollapse}
-          className="absolute top-[22px] left-[70px] hover:scale-125 transition-all duration-200 cursor-pointer"
+          className="absolute top-[24px] left-[72px] hover:scale-125 transition-all duration-200 cursor-pointer z-10"
           title="展开侧边栏"
         >
-          <ChevronRightIcon className="w-2.5 h-2.5 text-white/30 hover:text-white/60" />
+          <ChevronRightIcon className="w-3 h-3 text-white/50 hover:text-white/80" />
         </button>
       )}
     </div>
