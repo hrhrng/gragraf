@@ -99,15 +99,15 @@ export const ConfigFormBase: React.FC<ConfigFormBaseProps> = ({
   availableVariables = [],
   showVariables = true
 }) => {
-  const getNodeTypeColor = (type: string) => {
-    const colorMap: Record<string, string> = {
+  const getNodeTypeColor = (type: string): 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'gray' => {
+    const colorMap: Record<string, 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'gray'> = {
       start: 'green',
       end: 'red',
       httpRequest: 'blue',
-      agent: 'violet',
-      knowledgeBase: 'cyan',
+      agent: 'purple',
+      knowledgeBase: 'blue',
       branch: 'yellow',
-      humanInLoop: 'orange',
+      humanInLoop: 'yellow',
     };
     return colorMap[type] || 'gray';
   };

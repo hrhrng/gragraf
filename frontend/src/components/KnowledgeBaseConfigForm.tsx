@@ -97,7 +97,7 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
         title="数据源"
         description="配置知识库的数据来源"
         icon={<GlobeIcon />}
-        badge={{ text: `${urlCount + documentCount} 个源`, color: 'cyan' }}
+        badge={{ text: `${urlCount + documentCount} 个源`, color: 'blue' }}
       >
         <ConfigTextAreaField
           label="文档URLs"
@@ -202,11 +202,11 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="p-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg text-center">
-            <Text size="3" weight="bold" className="text-cyan-400 block">{urlCount}</Text>
+            <Text size="3" weight="bold" className="text-blue-400 block">{urlCount}</Text>
             <Text size="1" className="text-[var(--color-text-secondary)]">在线文档</Text>
           </div>
           <div className="p-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg text-center">
-            <Text size="3" weight="bold" className="text-cyan-400 block">{documentCount}</Text>
+            <Text size="3" weight="bold" className="text-blue-400 block">{documentCount}</Text>
             <Text size="1" className="text-[var(--color-text-secondary)]">本地文档</Text>
           </div>
         </div>

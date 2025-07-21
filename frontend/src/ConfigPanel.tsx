@@ -17,16 +17,20 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, onConfigChange 
     return null;
   }
 
+  const handleConfigChange = (config: any) => {
+    onConfigChange(selectedNode.id, config);
+  };
+
   const renderConfigForm = () => {
     switch (selectedNode.data.label) {
       case 'HTTP Request':
-        return <HttpRequestConfigForm node={selectedNode} onConfigChange={onConfigChange} availableVariables={[]} />;
+        return <HttpRequestConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       case 'Branch':
-        return <BranchConfigForm node={selectedNode} onConfigChange={onConfigChange} availableVariables={[]} />;
+        return <BranchConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       case 'Knowledge Base':
-        return <KnowledgeBaseConfigForm node={selectedNode} onConfigChange={onConfigChange} availableVariables={[]} />;
+        return <KnowledgeBaseConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       case 'Agent':
-        return <AgentConfigForm node={selectedNode} onConfigChange={onConfigChange} availableVariables={[]} />;
+        return <AgentConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       default:
         return null;
     }

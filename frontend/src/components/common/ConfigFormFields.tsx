@@ -218,9 +218,7 @@ export const ConfigSelectField: React.FC<SelectFieldProps> = ({
         <Select.Trigger 
           className="w-full"
           placeholder={placeholder}
-        >
-          <Select.Value />
-        </Select.Trigger>
+        />
         <Select.Content>
           {options.map((option) => (
             <Select.Item 

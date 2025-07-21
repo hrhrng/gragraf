@@ -157,7 +157,7 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({
               <div>• 输出字段定义了工作流完成时返回的数据结构</div>
               <div>• 每个输出包含名称和值两部分</div>
               <div>• 值可以是静态文本或动态变量引用</div>
-              <div>• 使用 <code className="bg-red-500/20 px-1 rounded">{"{{变量名}}"}</code> 引用其他节点的输出</div>
+              <div>• 使用 <code className="bg-red-500/20 px-1 rounded">{'{{变量名}}'}</code> 引用其他节点的输出</div>
             </div>
           </div>
 
@@ -166,9 +166,9 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({
               变量引用示例
             </Text>
             <div className="space-y-2 text-sm text-blue-300">
-              <div>• <code className="bg-blue-500/20 px-1 rounded">{"{{agent_response}}"}</code> - 引用AI代理的输出</div>
-              <div>• <code className="bg-blue-500/20 px-1 rounded">{"{{http_response}}"}</code> - 引用HTTP请求的结果</div>
-              <div>• <code className="bg-blue-500/20 px-1 rounded">Final result: {{summary}}</code> - 混合静态文本和变量</div>
+              <div>• <code className="bg-blue-500/20 px-1 rounded">{'{{agent_response}}'}</code> - 引用AI代理的输出</div>
+              <div>• <code className="bg-blue-500/20 px-1 rounded">{'{{http_response}}'}</code> - 引用HTTP请求的结果</div>
+              <div>• <code className="bg-blue-500/20 px-1 rounded">{'Final result: {{summary}}'}</code> - 混合静态文本和变量</div>
               <div>• 可以在一个值中引用多个变量</div>
             </div>
           </div>
