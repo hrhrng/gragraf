@@ -26,35 +26,60 @@ const nodeTypes = [
     type: 'httpRequest', 
     label: 'HTTP Request', 
     icon: GlobeIcon, 
-    color: 'slate',
+    color: 'emerald',
+    iconColor: 'text-emerald-400',
+    bgColor: 'bg-emerald-500/10',
+    borderColor: 'border-emerald-500/20',
+    hoverBgColor: 'group-hover:bg-emerald-500/20',
+    hoverIconColor: 'group-hover:text-emerald-300',
     description: 'Make HTTP API calls'
   },
   { 
     type: 'agent', 
     label: 'Agent', 
     icon: PersonIcon, 
-    color: 'slate',
+    color: 'violet',
+    iconColor: 'text-violet-400',
+    bgColor: 'bg-violet-500/10',
+    borderColor: 'border-violet-500/20',
+    hoverBgColor: 'group-hover:bg-violet-500/20',
+    hoverIconColor: 'group-hover:text-violet-300',
     description: 'AI agent processing'
   },
   { 
     type: 'knowledgeBase', 
     label: 'Knowledge Base', 
     icon: FileTextIcon, 
-    color: 'slate',
+    color: 'cyan',
+    iconColor: 'text-cyan-400',
+    bgColor: 'bg-cyan-500/10',
+    borderColor: 'border-cyan-500/20',
+    hoverBgColor: 'group-hover:bg-cyan-500/20',
+    hoverIconColor: 'group-hover:text-cyan-300',
     description: 'Query knowledge base'
   },
   { 
     type: 'branch', 
     label: 'Branch', 
     icon: BorderSplitIcon, 
-    color: 'slate',
+    color: 'amber',
+    iconColor: 'text-amber-400',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/20',
+    hoverBgColor: 'group-hover:bg-amber-500/20',
+    hoverIconColor: 'group-hover:text-amber-300',
     description: 'Conditional branching'
   },
   { 
     type: 'humanInLoop', 
     label: 'Human Approval', 
     icon: CheckCircledIcon, 
-    color: 'slate',
+    color: 'rose',
+    iconColor: 'text-rose-400',
+    bgColor: 'bg-rose-500/10',
+    borderColor: 'border-rose-500/20',
+    hoverBgColor: 'group-hover:bg-rose-500/20',
+    hoverIconColor: 'group-hover:text-rose-300',
     description: 'Human-in-the-loop approval'
   }
 ];
@@ -118,15 +143,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   >
                     {isCollapsed ? (
                       <div className="w-6 h-6 flex items-center justify-center mx-auto">
-                        <div className={`w-6 h-6 rounded flex items-center justify-center bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors`}>
-                          <IconComponent className={`w-3 h-3 text-white/60 group-hover:text-white/80 transition-all`} />
+                        <div className={`w-6 h-6 rounded flex items-center justify-center ${nodeType.bgColor} ${nodeType.borderColor} ${nodeType.hoverBgColor} transition-colors border`}>
+                          <IconComponent className={`w-3 h-3 ${nodeType.iconColor} ${nodeType.hoverIconColor} transition-all`} />
                         </div>
                       </div>
                     ) : (
                       <div className="px-2 py-1.5">
                         <div className="flex items-center gap-1.5">
-                          <div className={`w-5 h-5 rounded flex items-center justify-center bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors`}>
-                            <IconComponent className={`w-3 h-3 text-white/60 group-hover:text-white/80 transition-all`} />
+                          <div className={`w-5 h-5 rounded flex items-center justify-center ${nodeType.bgColor} ${nodeType.borderColor} ${nodeType.hoverBgColor} transition-colors border`}>
+                            <IconComponent className={`w-3 h-3 ${nodeType.iconColor} ${nodeType.hoverIconColor} transition-all`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <Text size="1" weight="medium" className="text-white block truncate">
