@@ -118,9 +118,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   title={isCollapsed ? nodeType.label : undefined}
                 >
                   {isCollapsed ? (
-                    <div className="w-10 h-10 flex items-center justify-center mx-auto">
-                      <div className={`w-10 h-10 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className={`w-4 h-4 text-${nodeType.color}-400 transition-all`} />
+                    <div className="w-6 h-6 flex items-center justify-center mx-auto">
+                      <div className={`w-6 h-6 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                        <IconComponent className={`w-3 h-3 text-${nodeType.color}-400 transition-all`} />
                       </div>
                     </div>
                   ) : (
