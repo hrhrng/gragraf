@@ -14,49 +14,79 @@ import { NodeData } from './types';
 import { StartNode } from './components/StartNode';
 import { EndNode } from './components/EndNode';
 
+// 统一的克苏鲁风格配色
+const nodeStyleConfig = {
+  'http request': {
+    icon: GlobeIcon,
+    iconColor: 'text-teal-300',
+    bgColor: 'bg-teal-900/20',
+    borderColor: 'border-teal-700/30',
+    badgeColor: 'teal'
+  },
+  'agent': {
+    icon: PersonIcon,
+    iconColor: 'text-indigo-300',
+    bgColor: 'bg-indigo-900/20',
+    borderColor: 'border-indigo-700/30',
+    badgeColor: 'indigo'
+  },
+  'knowledge base': {
+    icon: FileTextIcon,
+    iconColor: 'text-purple-300',
+    bgColor: 'bg-purple-900/20',
+    borderColor: 'border-purple-700/30',
+    badgeColor: 'purple'
+  },
+  'branch': {
+    icon: BorderSplitIcon,
+    iconColor: 'text-orange-300',
+    bgColor: 'bg-orange-900/20',
+    borderColor: 'border-orange-700/30',
+    badgeColor: 'orange'
+  },
+  'human approval': {
+    icon: CheckCircledIcon,
+    iconColor: 'text-red-300',
+    bgColor: 'bg-red-900/20',
+    borderColor: 'border-red-700/30',
+    badgeColor: 'red'
+  }
+};
+
 const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
-  const getNodeIcon = (label: string) => {
-    switch (label.toLowerCase()) {
-      case 'agent': return <PersonIcon />;
-      case 'http request': return <GlobeIcon />;
-      case 'knowledge base': return <FileTextIcon />;
-      case 'human approval': return <CheckCircledIcon />;
-      default: return <QuestionMarkIcon />;
-    }
+  const getNodeStyle = (label: string) => {
+    const normalizedLabel = label.toLowerCase();
+    return nodeStyleConfig[normalizedLabel] || {
+      icon: QuestionMarkIcon,
+      iconColor: 'text-gray-300',
+      bgColor: 'bg-gray-900/20',
+      borderColor: 'border-gray-700/30',
+      badgeColor: 'gray'
+    };
   };
 
-  const getNodeColor = (label: string) => {
-    switch (label.toLowerCase()) {
-      case 'agent': return 'blue';
-      case 'http request': return 'green';
-      case 'knowledge base': return 'purple';
-      case 'human approval': return 'orange';
-      default: return 'gray';
-    }
-  };
-
-  const color = getNodeColor(data.label);
-  const icon = getNodeIcon(data.label);
+  const style = getNodeStyle(data.label);
+  const IconComponent = style.icon;
 
   return (
     <div className="relative transition-all duration-200">
       <Handle 
         type="target" 
         position={Position.Left}
-        className="w-3 h-3 border-2 border-white bg-[var(--color-bg-tertiary)]"
+        className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
       
       <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
         selected 
-          ? 'border-[#01408d] shadow-lg shadow-[#01408d33]' 
-          : 'border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/50'
+          ? 'border-white/30 shadow-lg shadow-black/20' 
+          : 'border-[var(--color-border-primary)] hover:border-white/20'
       } transition-all duration-200`}>
         <div className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${color}-500/10 border border-${color}-500/20`}>
-              {icon && React.cloneElement(icon, { className: `w-4 h-4 text-${color}-400` })}
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`}>
+              <IconComponent className={`w-4 h-4 ${style.iconColor}`} />
             </div>
-            <Text size="3" weight="medium" className="text-white flex-1">
+            <Text size="3" weight="medium" className="text-white flex-1" style={{ fontFamily: 'inherit' }}>
               {data.label}
             </Text>
           </div>
@@ -65,11 +95,11 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
             <div className="space-y-2">
               {Object.entries(data.config).slice(0, 2).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between">
-                  <Text size="1" className="text-[var(--color-text-secondary)] capitalize">
+                  <Text size="1" className="text-white/60 capitalize" style={{ fontFamily: 'inherit' }}>
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </Text>
-                  <Badge size="1" variant="soft" color={color}>
-                    <Text size="1">
+                  <Badge size="1" variant="soft" color={style.badgeColor}>
+                    <Text size="1" style={{ fontFamily: 'inherit' }}>
                       {typeof value === 'string' ? value.slice(0, 10) + (value.length > 10 ? '...' : '') : 
                        typeof value === 'object' ? 'Object' : 
                        String(value)}
@@ -85,7 +115,7 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
       <Handle 
         type="source" 
         position={Position.Right}
-        className="w-3 h-3 border-2 border-white bg-[var(--color-bg-tertiary)]"
+        className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
     </div>
   );
@@ -101,134 +131,120 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
   // 内容区顶部padding
   const contentPaddingTop = 16;
 
+  const style = nodeStyleConfig['branch'];
+
   return (
     <div className="relative transition-all duration-200">
       <Handle 
         type="target" 
         position={Position.Left}
-        className="w-3 h-3 border-2 border-white bg-[var(--color-bg-tertiary)]"
+        className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
       <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
         selected 
-          ? 'border-[#01408d] shadow-lg shadow-[#01408d33]' 
-          : 'border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/50'
+          ? 'border-white/30 shadow-lg shadow-black/20' 
+          : 'border-[var(--color-border-primary)] hover:border-white/20'
       } transition-all duration-200`}>
         <div className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-500/10 border border-yellow-500/20">
-              <BorderSplitIcon className="w-4 h-4 text-yellow-400" />
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`}>
+              <BorderSplitIcon className={`w-4 h-4 ${style.iconColor}`} />
             </div>
-            <Text size="3" weight="medium" className="text-white flex-1">
+            <Text size="3" weight="medium" className="text-white flex-1" style={{ fontFamily: 'inherit' }}>
               {data.label}
             </Text>
           </div>
-          {conditions.length > 0 && (
-            <div className="space-y-2" style={{ position: 'relative', paddingTop: contentPaddingTop }}>
-              <Text size="1" className="text-[var(--color-text-secondary)]">
-                Conditions: {conditions.length}
-              </Text>
-              {/* 条件分支行 */}
-              {conditions.map((condition: any, index: number) => (
-                <div key={index} className="flex items-center justify-between h-8 relative">
-                  <Text size="1" className="text-[var(--color-text-secondary)]">
-                    {index === 0 ? 'If' : `Else if`}
+          
+          <div className="space-y-1">
+            {conditions.map((condition, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
+                  Condition {index + 1}
+                </Text>
+                <Badge size="1" variant="soft" color={style.badgeColor}>
+                  <Text size="1" style={{ fontFamily: 'inherit' }}>
+                    {condition.field || 'Field'} {condition.operator || '='} {String(condition.value).slice(0, 8)}
                   </Text>
-                  <Badge size="1" variant="soft" color="yellow">
-                    <Text size="1">
-                      {condition.condition?.slice(0, 10) + (condition.condition?.length > 10 ? '...' : '') || 'Empty'}
-                    </Text>
-                  </Badge>
-                  {/* 对齐的Handle */}
-                  <Handle
-                    type="source"
-                    position={Position.Right}
-                    id={`branch-${index}`}
-                    style={{
-                      position: 'absolute',
-                      right: -18,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                    }}
-                    className="w-3 h-3 border-2 border-yellow-400 bg-yellow-500/20"
-                  />
-                </div>
-              ))}
-              {/* else分支行 */}
-              {hasElse && (
-                <div className="flex items-center justify-between h-8 relative">
-                  <Text size="1" className="text-[var(--color-text-secondary)]">
-                    Else
-                  </Text>
-                  <Badge size="1" variant="soft" color="gray">
-                    <Text size="1">Default</Text>
-                  </Badge>
-                  <Handle
-                    type="source"
-                    position={Position.Right}
-                    id="default"
-                    style={{
-                      position: 'absolute',
-                      right: -18,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                    }}
-                    className="w-3 h-3 border-2 border-gray-400 bg-gray-500/20"
-                  />
-                </div>
-              )}
-            </div>
-          )}
+                </Badge>
+              </div>
+            ))}
+            {hasElse && (
+              <div className="flex items-center justify-between">
+                <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
+                  Else Branch
+                </Text>
+                <Badge size="1" variant="soft" color="gray">
+                  <Text size="1" style={{ fontFamily: 'inherit' }}>Default</Text>
+                </Badge>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
+      
+      {/* 动态生成右侧 Handle */}
+      {Array.from({ length: branchCount }, (_, index) => {
+        const yOffset = contentPaddingTop + (index * rowHeight);
+        return (
+          <Handle 
+            key={index}
+            type="source" 
+            position={Position.Right}
+            id={index === branchCount - 1 && hasElse ? 'else' : `condition-${index}`}
+            className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
+            style={{ top: yOffset + 'px' }}
+          />
+        );
+      })}
     </div>
   );
 };
 
 const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
   const config = data.config || {};
+  const style = nodeStyleConfig['human approval'];
   
   return (
     <div className="relative transition-all duration-200">
       <Handle 
         type="target" 
         position={Position.Left}
-        className="w-3 h-3 border-2 border-white bg-[var(--color-bg-tertiary)]"
+        className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
       
       <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
         selected 
-          ? 'border-[#01408d] shadow-lg shadow-[#01408d33]' 
-          : 'border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/50'
+          ? 'border-white/30 shadow-lg shadow-black/20' 
+          : 'border-[var(--color-border-primary)] hover:border-white/20'
       } transition-all duration-200`}>
         <div className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-500/10 border border-orange-500/20">
-              <CheckCircledIcon className="w-4 h-4 text-orange-400" />
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`}>
+              <CheckCircledIcon className={`w-4 h-4 ${style.iconColor}`} />
             </div>
-            <Text size="3" weight="medium" className="text-white flex-1">
+            <Text size="3" weight="medium" className="text-white flex-1" style={{ fontFamily: 'inherit' }}>
               {data.label}
             </Text>
           </div>
           
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Text size="1" className="text-[var(--color-text-secondary)]">
+              <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
                 Message
               </Text>
-              <Badge size="1" variant="soft" color="orange">
-                <Text size="1">
-                  {config.message ? config.message.slice(0, 15) + (config.message.length > 15 ? '...' : '') : 'Not set'}
+              <Badge size="1" variant="soft" color={style.badgeColor}>
+                <Text size="1" style={{ fontFamily: 'inherit' }}>
+                  {config.message?.slice(0, 10) + (config.message?.length > 10 ? '...' : '') || 'Pending'}
                 </Text>
               </Badge>
             </div>
-            
             <div className="flex items-center justify-between">
-              <Text size="1" className="text-[var(--color-text-secondary)]">
-                Required
+              <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
+                Timeout
               </Text>
-              <Badge size="1" variant="soft" color={config.require_comment ? "orange" : "gray"}>
-                <Text size="1">
-                  {config.require_comment ? 'Yes' : 'No'}
+              <Badge size="1" variant="soft" color="gray">
+                <Text size="1" style={{ fontFamily: 'inherit' }}>
+                  {config.timeout || 'None'}
                 </Text>
               </Badge>
             </div>
@@ -236,22 +252,10 @@ const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
         </div>
       </Card>
       
-      {/* Approval handle */}
       <Handle 
         type="source" 
         position={Position.Right}
-        id="approved"
-        style={{ top: '40%' }}
-        className="w-3 h-3 border-2 border-green-400 bg-green-500/20"
-      />
-      
-      {/* Rejection handle */}
-      <Handle 
-        type="source" 
-        position={Position.Right}
-        id="rejected"
-        style={{ top: '60%' }}
-        className="w-3 h-3 border-2 border-red-400 bg-red-500/20"
+        className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
     </div>
   );
