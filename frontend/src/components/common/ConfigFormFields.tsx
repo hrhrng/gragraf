@@ -136,15 +136,9 @@ export const ConfigTextField: React.FC<TextFieldProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          type={type}
           className="w-full"
-        >
-          <TextField.Slot>
-            <input
-              type={type}
-              className="w-full p-2 bg-transparent text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-secondary)]"
-            />
-          </TextField.Slot>
-        </TextField.Root>
+        />
       </div>
     </FormFieldBase>
   );
@@ -187,7 +181,7 @@ export const ConfigTextAreaField: React.FC<TextAreaFieldProps> = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full p-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-md text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] resize-vertical"
+          className="w-full resize-vertical"
         />
       </div>
     </FormFieldBase>
