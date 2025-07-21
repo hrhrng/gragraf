@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
   };
 
   return (
-    <div className="flex">
+    <div className="relative">
       <div className={`${isCollapsed ? 'w-16' : 'w-48'} bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in transition-all duration-300 ease-in-out`}>
         {/* Header */}
         <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-b border-[var(--color-border-primary)] ${isCollapsed ? 'h-12' : 'h-12'} flex items-center`}>
@@ -144,14 +144,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
         </div>
       </div>
 
-      {/* 外部展开按钮 - 只在折叠状态显示 */}
+      {/* 可爱的小箭头按钮 - 与G字母同一水平线 */}
       {isCollapsed && (
         <button
           onClick={toggleCollapse}
-          className="ml-2 p-1 bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] rounded transition-colors border border-[var(--color-border-primary)]"
+          className="absolute top-[22px] left-[70px] hover:scale-125 transition-all duration-200 cursor-pointer"
           title="展开侧边栏"
         >
-          <ChevronRightIcon className="w-4 h-4 text-white" />
+          <ChevronRightIcon className="w-2.5 h-2.5 text-white/30 hover:text-white/60" />
         </button>
       )}
     </div>
