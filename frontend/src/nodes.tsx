@@ -14,8 +14,27 @@ import { NodeData } from './types';
 import { StartNode } from './components/StartNode';
 import { EndNode } from './components/EndNode';
 
+// 定义Badge颜色类型
+type BadgeColor = 'gray' | 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan' | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'fuchsia' | 'pink' | 'rose';
+
+// 定义节点样式配置类型
+interface NodeStyleConfig {
+  icon: React.ComponentType<any>;
+  iconColor: string;
+  bgColor: string;
+  borderColor: string;
+  badgeColor: BadgeColor;
+}
+
+// 定义条件类型
+interface Condition {
+  field?: string;
+  operator?: string;
+  value?: any;
+}
+
 // 统一的克苏鲁风格配色
-const nodeStyleConfig = {
+const nodeStyleConfig: Record<string, NodeStyleConfig> = {
   'http request': {
     icon: GlobeIcon,
     iconColor: 'text-teal-300',
@@ -54,7 +73,7 @@ const nodeStyleConfig = {
 };
 
 const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
-  const getNodeStyle = (label: string) => {
+  const getNodeStyle = (label: string): NodeStyleConfig => {
     const normalizedLabel = label.toLowerCase();
     return nodeStyleConfig[normalizedLabel] || {
       icon: QuestionMarkIcon,
@@ -122,7 +141,7 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
 };
 
 const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
-  const conditions = data.config?.conditions || [];
+  const conditions: Condition[] = data.config?.conditions || [];
   const hasElse = data.config?.hasElse || false;
   const branchCount = conditions.length + (hasElse ? 1 : 0);
 
@@ -156,12 +175,12 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
           </div>
           
           <div className="space-y-1">
-            {conditions.map((condition, index) => (
+            {conditions.map((condition: Condition, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
                   Condition {index + 1}
                 </Text>
-                <Badge size="1" variant="soft" color={style.badgeColor}>
+                <Badge size="1" variant="soft" color={style.badgeColor as BadgeColor}>
                   <Text size="1" style={{ fontFamily: 'inherit' }}>
                     {condition.field || 'Field'} {condition.operator || '='} {String(condition.value).slice(0, 8)}
                   </Text>
@@ -232,7 +251,7 @@ const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
               <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
                 Message
               </Text>
-              <Badge size="1" variant="soft" color={style.badgeColor}>
+              <Badge size="1" variant="soft" color={style.badgeColor as BadgeColor}>
                 <Text size="1" style={{ fontFamily: 'inherit' }}>
                   {config.message?.slice(0, 10) + (config.message?.length > 10 ? '...' : '') || 'Pending'}
                 </Text>
