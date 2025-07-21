@@ -80,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
         
         {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
         <div className="h-full overflow-y-auto overflow-x-visible">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {nodeTypes.map((nodeType) => {
               const IconComponent = nodeType.icon;
               return (
@@ -89,18 +89,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   className="group cursor-pointer relative transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:z-20 bg-[var(--color-bg-tertiary)] hover:border-[var(--color-accent)] border-[var(--color-border-primary)] animate-fade-in"
                   onClick={() => onAddNode(nodeType.type, nodeType.label)}
                 >
-                  <div className="p-3">
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className={`w-4 h-4 text-${nodeType.color}-400 transition-all`} />
+                  <div className="px-3 py-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-7 h-7 rounded-md flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                        <IconComponent className={`w-3.5 h-3.5 text-${nodeType.color}-400 transition-all`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Text size="2" weight="medium" className="text-white">
-                            {nodeType.label}
-                          </Text>
-                        </div>
-                        <Text size="1" className="text-[var(--color-text-secondary)] leading-tight">
+                        <Text size="2" weight="medium" className="text-white block">
+                          {nodeType.label}
+                        </Text>
+                        <Text size="1" className="text-[var(--color-text-secondary)] leading-tight block">
                           {nodeType.description}
                         </Text>
                       </div>
