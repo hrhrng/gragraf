@@ -11,16 +11,16 @@
   --color-border-secondary: #3a3a3f;
   --color-text-primary: #ffffff;
   --color-text-secondary: #a1a1aa;
-  --color-accent: #8b5cf6;
-  --color-accent-hover: #7c3aed;
+  --color-accent: #01408d;
+  --color-accent-hover: #01316b;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --gradient-primary: linear-gradient(135deg, #01408d 0%, #01408d 100%);
+  --gradient-secondary: linear-gradient(135deg, #01408d 0%, #01408d 100%);
 }
 
 * {

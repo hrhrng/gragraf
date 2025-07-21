@@ -10,30 +10,33 @@ export const EndNode = ({ data, selected }: NodeProps<NodeData>) => {
   return (
     <div className="relative transition-all duration-200">
       {/* Lock icon to indicate non-deletable */}
-      <div className="absolute -top-2 -right-2 z-10 w-6 h-6 bg-red-500/20 border border-red-500/30 rounded-full flex items-center justify-center">
-        <LockClosedIcon className="w-3 h-3 text-red-400" />
+      <div className="absolute -top-2 -right-2 z-10 w-6 h-6 bg-[#d94224]/20 border border-[#d94224]/30 rounded-full flex items-center justify-center">
+        <LockClosedIcon className="w-3 h-3 text-[#d94224]" />
       </div>
       
       <Handle 
         type="target" 
         position={Position.Left}
-        className="w-3 h-3 border-2 border-red-400 bg-red-500/20"
+        className="w-3 h-3 border-2"
+        style={{ borderColor: '#d94224', background: '#d94224' + '33' }}
       />
       
-      <Card className={`w-56 bg-gradient-to-br from-red-600/20 to-rose-600/20 border-2 ${
+      <Card className={`w-56 border-2 ${
         selected 
           ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' 
-          : 'border-red-500/50 hover:border-red-400'
-      } transition-all duration-200`}>
+          : ''
+      } transition-all duration-200`}
+        style={{ background: '#d9422433', borderColor: selected ? undefined : '#d94224' }}
+      >
         <div className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/20 border border-red-500/30">
-              <ExitIcon className="w-4 h-4 text-red-400" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#d94224' + '33', border: '1px solid #d94224' }}>
+              <ExitIcon className="w-4 h-4" style={{ color: '#d94224' }} />
             </div>
             <Text size="3" weight="medium" className="text-white flex-1">
               {data.label}
             </Text>
-            <Badge size="1" color="red" variant="soft">
+            <Badge size="1" style={{ background: '#d94224' + '22', color: '#d94224' }} variant="soft">
               <Text size="1">Exit</Text>
             </Badge>
           </div>
@@ -44,7 +47,7 @@ export const EndNode = ({ data, selected }: NodeProps<NodeData>) => {
                 <Text size="1" className="text-[var(--color-text-secondary)]">
                   Output Fields
                 </Text>
-                <Badge size="1" variant="soft" color="red">
+                <Badge size="1" variant="soft" style={{ background: '#d94224' + '22', color: '#d94224' }}>
                   <Text size="1">{outputCount}</Text>
                 </Badge>
               </div>

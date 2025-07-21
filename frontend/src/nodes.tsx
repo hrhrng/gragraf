@@ -48,7 +48,7 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
       
       <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
         selected 
-          ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' 
+          ? 'border-[#01408d] shadow-lg shadow-[#01408d33]' 
           : 'border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/50'
       } transition-all duration-200`}>
         <div className="p-4">
@@ -110,7 +110,7 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
       />
       <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
         selected 
-          ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' 
+          ? 'border-[#01408d] shadow-lg shadow-[#01408d33]' 
           : 'border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/50'
       } transition-all duration-200`}>
         <div className="p-4">
@@ -197,7 +197,7 @@ const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
       
       <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
         selected 
-          ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' 
+          ? 'border-[#01408d] shadow-lg shadow-[#01408d33]' 
           : 'border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/50'
       } transition-all duration-200`}>
         <div className="p-4">

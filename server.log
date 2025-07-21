@@ -59,3 +59,195 @@ INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input', 'humanI
 INFO:gragraf.nodes.end:EndNode end_1: Collected what = It seems like there was an error related to an undefined input. Could you please provide more context or clarify what you need help with? This will allow me to assist you better!
 INFO:gragraf.compiler:Applying direct state update: {'end_1_outputs': {'what': 'It seems like there was an error related to an undefined input. Could you please provide more context or clarify what you need help with? This will allow me to assist you better!'}, 'outputs': {'what': 'It seems like there was an error related to an undefined input. Could you please provide more context or clarify what you need help with? This will allow me to assist you better!'}}
 INFO:gragraf.compiler:State after reducer: ['humanInLoop_5_human_input', 'humanInLoop_5_decision', 'humanInLoop_5_comment', 'humanInLoop_5_user_input', 'agent_4_output', 'end_1_outputs', 'outputs']
+✓ Graph topology validated. Execution order: ['start_1', 'humanInLoop_5', 'agent_4', 'end_1']
+✓ Found start node: start_1
+✓ Found end node: end_1
+✓ Set entry point: start_1
+✓ Added 3 regular edges
+✓ Added 2 conditional edges
+✓ Connected end node end_1 to END
+✓ Graph compilation completed successfully
+INFO:     127.0.0.1:0 - "GET /GraGraf-logo-transparent.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /workflows/?page=1&page_size=10 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/applications.py", line 112, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    raise exc
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 291, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/fastapi/dependencies/utils.py", line 640, in solve_dependencies
+    solved = await run_in_threadpool(call, **solved_result.values)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/concurrency.py", line 37, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/src/gragraf/api/workflows.py", line 77, in get_workflow_service
+    raise RuntimeError("Database not initialized. Application startup may have failed.")
+RuntimeError: Database not initialized. Application startup may have failed.
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /logo192.png HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /workflows/?page=1&page_size=10 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/applications.py", line 112, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    raise exc
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 291, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/fastapi/dependencies/utils.py", line 640, in solve_dependencies
+    solved = await run_in_threadpool(call, **solved_result.values)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/starlette/concurrency.py", line 37, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xiaoyang/Proj/gragraf/src/gragraf/api/workflows.py", line 77, in get_workflow_service
+    raise RuntimeError("Database not initialized. Application startup may have failed.")
+RuntimeError: Database not initialized. Application startup may have failed.

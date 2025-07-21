@@ -57,7 +57,7 @@ const getAvailableVariables = (nodeId: string, nodes: Node[], edges: Edge[]): st
 const getNodeTypeInfo = (nodeType: string | undefined) => {
   const nodeTypeMap: Record<string, { color: string; description: string }> = {
     start: { color: 'green', description: 'Workflow entry point' },
-    end: { color: 'red', description: 'Workflow exit point' },
+    end: { color: '#d94224', description: 'Workflow exit point' },
     httpRequest: { color: 'blue', description: 'HTTP API calls' },
     agent: { color: 'violet', description: 'AI agent processing' },
     knowledgeBase: { color: 'cyan', description: 'Knowledge base queries' },
@@ -98,9 +98,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
       {/* Header */}
       <div className="p-6 border-b border-[var(--color-border-primary)]">
         <div className="flex items-center gap-3 mb-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${nodeInfo.color}-500/10 border border-${nodeInfo.color}-500/20`}>
-            <GearIcon className={`w-5 h-5 text-${nodeInfo.color}-400`} />
-          </div>
+          {selectedNode.type === 'end' ? (
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: '#d9422433', border: '1px solid #d94224' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d94224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 17L7 7"/><path d="M7 17V7h10"/></svg>
+            </div>
+          ) : (
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${nodeInfo.color}-500/10 border border-${nodeInfo.color}-500/20`}>
+              <GearIcon className={`w-5 h-5 text-${nodeInfo.color}-400`} />
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <Heading size="3" className="text-white">
               {selectedNode.data.label}
@@ -109,9 +115,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
               {nodeInfo.description}
             </Text>
           </div>
-          <Badge size="1" color={nodeInfo.color as any} variant="soft">
-            <Text size="1">{selectedNode.type}</Text>
-          </Badge>
+          {selectedNode.type === 'end' ? (
+            <Badge size="1" style={{ background: '#d9422422', color: '#d94224' }} variant="soft">
+              <Text size="1">end</Text>
+            </Badge>
+          ) : (
+            <Badge size="1" color={nodeInfo.color as any} variant="soft">
+              <Text size="1">{selectedNode.type}</Text>
+            </Badge>
+          )}
         </div>
         
         <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">

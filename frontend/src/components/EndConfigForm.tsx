@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { Node } from 'reactflow';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, Text, Heading, TextField, Card, Flex, Box } from '@radix-ui/themes';
-import { PlusIcon, TrashIcon } from '@radix-ui/react-icons';
+import { Button, Text, Heading, TextField, Card, Flex, Box, Badge } from '@radix-ui/themes';
+import { PlusIcon, TrashIcon, ExitIcon } from '@radix-ui/react-icons';
 import { NodeData } from '../types';
 import { VariablePicker } from './VariablePicker';
 
@@ -66,18 +66,23 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({ node, onConfigChan
 
   return (
     <div className="space-y-6">
-      <div>
-        <Heading size="3" className="text-white mb-2">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#d9422433', border: '1px solid #d94224' }}>
+          <ExitIcon className="w-4 h-4" style={{ color: '#d94224' }} />
+        </div>
+        <Text size="3" weight="medium" className="text-white flex-1">
           Define Graph Outputs
-        </Heading>
-        <Text size="2" className="text-[var(--color-text-secondary)]">
-          Select variables to be returned as the final output.
         </Text>
+        <Badge size="1" style={{ background: '#d94224' + '22', color: '#d94224' }} variant="soft">
+          <Text size="1">Exit</Text>
+        </Badge>
       </div>
-
+      <Text size="2" className="text-[var(--color-text-secondary)]">
+        Select variables to be returned as the final output.
+      </Text>
       <div className="space-y-3">
         {fields.map((field, index) => (
-          <Card key={field.id} className="bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)] p-4">
+          <Card key={field.id} className="bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)] p-4" style={{ background: '#d9422433', borderColor: '#d94224' }}>
             <div className="space-y-3">
               {/* Output Name */}
               <div className="space-y-2">
@@ -88,10 +93,10 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({ node, onConfigChan
                   {...register(`outputs.${index}.name`)}
                   placeholder="e.g., final_result"
                   className="w-full bg-[var(--color-bg-secondary)] border-[var(--color-border-primary)] text-white placeholder:text-[var(--color-text-secondary)]"
+                  style={{ borderColor: '#d94224' }}
                   onChange={handleInputChange}
                 />
               </div>
-
               {/* Output Value */}
               <div className="space-y-2">
                 <Text size="2" weight="medium" className="text-white">
@@ -103,6 +108,7 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({ node, onConfigChan
                       {...register(`outputs.${index}.value`)}
                       placeholder="{{agent_3_output}}"
                       className="w-full bg-[var(--color-bg-secondary)] border-[var(--color-border-primary)] text-white placeholder:text-[var(--color-text-secondary)]"
+                      style={{ borderColor: '#d94224' }}
                       onChange={handleInputChange}
                     />
                   </Box>
@@ -112,27 +118,25 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({ node, onConfigChan
                   />
                 </Flex>
               </div>
-
               {/* Remove Button */}
               <Flex justify="end">
                 <Button
                   type="button"
                   variant="soft"
-                  color="red"
                   size="2"
                   onClick={() => handleRemoveOutput(index)}
-                  className="text-red-400 hover:text-red-300"
+                  style={{ color: '#d94224', borderColor: '#d94224', background: 'rgba(217,66,36,0.08)' }}
+                  className="hover:opacity-80"
                 >
-                  <TrashIcon className="w-4 h-4 mr-1" />
+                  <ExitIcon className="w-4 h-4 mr-1" style={{ color: '#d94224' }} />
                   Remove
                 </Button>
               </Flex>
             </div>
           </Card>
         ))}
-
         {fields.length === 0 && (
-          <Card className="bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)] border-dashed">
+          <Card className="border-dashed" style={{ background: '#d9422433', borderColor: '#d94224' }}>
             <div className="p-8 text-center">
               <Text size="2" className="text-[var(--color-text-secondary)]">
                 No outputs defined yet. Add an output to specify what this workflow should return.
@@ -141,14 +145,14 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({ node, onConfigChan
           </Card>
         )}
       </div>
-
       <Button
         type="button"
         onClick={handleAddOutput}
         size="3"
-        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 font-medium"
+        style={{ background: 'linear-gradient(90deg, #d94224 0%, #d94224cc 100%)', color: 'white', border: 0, fontWeight: 500 }}
+        className="w-full"
       >
-        <PlusIcon className="w-4 h-4 mr-2" />
+        <ExitIcon className="w-4 h-4 mr-2" style={{ color: 'white' }} />
         Add Output
       </Button>
     </div>

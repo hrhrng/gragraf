@@ -892,7 +892,9 @@ function App() {
         <Button 
           onClick={handleRunClick}
           size="3"
-          className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0 font-medium shadow-xl hover:shadow-2xl transition-all duration-200 px-8"
+          variant="soft"
+          color="blue"
+          className="px-8 font-medium shadow-xl hover:shadow-2xl transition-all duration-200"
         >
           <PlayIcon className="w-4 h-4 mr-2" />
           Run Workflow

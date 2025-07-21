@@ -101,7 +101,9 @@ const RightPanel: React.FC<RightPanelProps> = ({
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0"
+                  variant="soft"
+                  color="blue"
+                  className="flex-1"
                   disabled={runFormInputs.length === 0}
                 >
                   <PlayIcon className="w-4 h-4 mr-2" />

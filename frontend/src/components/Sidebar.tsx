@@ -31,7 +31,7 @@ const nodeTypes = [
     type: 'agent', 
     label: 'Agent', 
     icon: PersonIcon, 
-    color: 'violet',
+    color: 'custom',
     description: 'AI agent processing'
   },
   { 
@@ -59,24 +59,18 @@ const nodeTypes = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
   return (
-    <div className="w-80 bg-[var(--color-bg-secondary)] border-r border-[var(--color-border-primary)] flex flex-col h-full animate-slide-in">
+    <div className="w-80 bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in">
       {/* Header */}
-      <div className="p-6 border-b border-[var(--color-border-primary)]">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-            <ComponentInstanceIcon className="w-4 h-4 text-white" />
-          </div>
-          <Heading size="4" className="text-white font-semibold">
+      <div className="p-6 border-b border-[var(--color-border-primary)] h-16 flex items-center">
+        <div className="flex items-center gap-3 w-full">
+          <Heading size="4" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '2rem' }}>
             GraGraf
           </Heading>
         </div>
-        <Text size="2" className="text-[var(--color-text-secondary)]">
-          Visual workflow orchestrator
-        </Text>
       </div>
 
       {/* Node Library */}
-      <div className="flex-1 p-6 overflow-hidden">
+      <div className="flex-1 p-6 overflow-visible">
         <div className="flex items-center gap-2 mb-6">
           <PlusIcon className="w-4 h-4 text-[var(--color-accent)]" />
           <Heading size="3" className="text-white">
@@ -84,15 +78,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
           </Heading>
         </div>
         
-        <ScrollArea className="h-full">
+        {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
+        <div className="h-full overflow-y-auto overflow-x-visible">
           <div className="space-y-3">
             {nodeTypes.map((nodeType) => {
               const IconComponent = nodeType.icon;
-              
               return (
                 <Card 
                   key={nodeType.type}
-                  className="group cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg bg-[var(--color-bg-tertiary)] hover:border-[var(--color-accent)] border-[var(--color-border-primary)] animate-fade-in"
+                  className="group cursor-pointer relative transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:z-20 bg-[var(--color-bg-tertiary)] hover:border-[var(--color-accent)] border-[var(--color-border-primary)] animate-fade-in"
                   onClick={() => onAddNode(nodeType.type, nodeType.label)}
                 >
                   <div className="p-4">
@@ -116,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
               );
             })}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
 

@@ -51,7 +51,7 @@ root.render(
   <React.StrictMode>
     <Theme 
       appearance="dark" 
-      accentColor="violet" 
+      accentColor="blue" 
       grayColor="slate" 
       radius="medium"
       scaling="100%"
