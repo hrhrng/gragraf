@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, Heading, Card, Badge, ScrollArea } from '@radix-ui/themes';
 import { Node } from 'reactflow';
 import { 
@@ -10,7 +10,9 @@ import {
   BorderSplitIcon,
   PersonIcon,
   PlayIcon,
-  CheckCircledIcon
+  CheckCircledIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@radix-ui/react-icons';
 import { NodeData } from '../types';
 
@@ -58,29 +60,50 @@ const nodeTypes = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   return (
-    <div className="w-48 bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in">
+    <div className={`${isCollapsed ? 'w-12' : 'w-48'} bg-[var(--color-bg-secondary)] rounded-lg flex flex-col h-full animate-slide-in transition-all duration-300 ease-in-out`}>
       {/* Header */}
-      <div className="p-3 border-b border-[var(--color-border-primary)] h-12 flex items-center">
+      <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-b border-[var(--color-border-primary)] ${isCollapsed ? 'h-12' : 'h-12'} flex items-center`}>
         <div className="flex items-center gap-2 w-full">
-          <Heading size="3" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
-            GraGraf
-          </Heading>
+          {!isCollapsed && (
+            <Heading size="3" className="text-white font-semibold" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
+              GraGraf
+            </Heading>
+          )}
+          <button
+            onClick={toggleCollapse}
+            className="ml-auto p-1 hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
+            title={isCollapsed ? "展开侧边栏" : "收起侧边栏"}
+          >
+            {isCollapsed ? (
+              <ChevronRightIcon className="w-4 h-4 text-white" />
+            ) : (
+              <ChevronLeftIcon className="w-4 h-4 text-white" />
+            )}
+          </button>
         </div>
       </div>
 
       {/* Node Library */}
-      <div className="flex-1 p-2.5 overflow-visible">
-        <div className="flex items-center gap-1.5 mb-2.5">
-          <PlusIcon className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-          <Heading size="1" className="text-white">
-            Add Nodes
-          </Heading>
-        </div>
+      <div className={`flex-1 ${isCollapsed ? 'p-1' : 'p-2.5'} overflow-visible`}>
+        {!isCollapsed && (
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <PlusIcon className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+            <Heading size="1" className="text-white">
+              Add Nodes
+            </Heading>
+          </div>
+        )}
         
         {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
         <div className="h-full overflow-y-auto overflow-x-visible">
-          <div className="space-y-1">
+          <div className={`${isCollapsed ? 'space-y-2' : 'space-y-1'}`}>
             {nodeTypes.map((nodeType) => {
               const IconComponent = nodeType.icon;
               return (
@@ -88,17 +111,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   key={nodeType.type}
                   className="group cursor-pointer relative transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:z-20 bg-[var(--color-bg-tertiary)] hover:border-[var(--color-accent)] border-[var(--color-border-primary)] animate-fade-in"
                   onClick={() => onAddNode(nodeType.type, nodeType.label)}
+                  title={isCollapsed ? nodeType.label : undefined}
                 >
-                  <div className="px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-5 h-5 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className={`w-3 h-3 text-${nodeType.color}-400 transition-all`} />
+                  <div className={`${isCollapsed ? 'p-2' : 'px-2 py-1.5'}`}>
+                    <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-1.5'}`}>
+                      <div className={`${isCollapsed ? 'w-6 h-6' : 'w-5 h-5'} rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                        <IconComponent className={`${isCollapsed ? 'w-4 h-4' : 'w-3 h-3'} text-${nodeType.color}-400 transition-all`} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <Text size="1" weight="medium" className="text-white block truncate">
-                          {nodeType.label}
-                        </Text>
-                      </div>
+                      {!isCollapsed && (
+                        <div className="flex-1 min-w-0">
+                          <Text size="1" weight="medium" className="text-white block truncate">
+                            {nodeType.label}
+                          </Text>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>
