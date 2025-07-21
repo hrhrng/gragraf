@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
       <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-b border-[var(--color-border-primary)] ${isCollapsed ? 'h-12' : 'h-12'} flex items-center`}>
         <div className="flex items-center gap-2 w-full">
           {isCollapsed ? (
-            <Text size="4" weight="bold" className="text-white mx-auto" style={{ fontFamily: 'Bellota Text, Arial, sans-serif' }}>
+            <Text className="text-white mx-auto" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
               G
             </Text>
           ) : (
@@ -117,20 +117,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   onClick={() => onAddNode(nodeType.type, nodeType.label)}
                   title={isCollapsed ? nodeType.label : undefined}
                 >
-                  <div className={`${isCollapsed ? 'p-1.5' : 'px-2 py-1.5'}`}>
-                    <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-1.5'}`}>
-                      <div className={`${isCollapsed ? 'w-7 h-7' : 'w-5 h-5'} rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className={`${isCollapsed ? 'w-4 h-4' : 'w-3 h-3'} text-${nodeType.color}-400 transition-all`} />
+                  {isCollapsed ? (
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      <div className={`w-8 h-8 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                        <IconComponent className={`w-4 h-4 text-${nodeType.color}-400 transition-all`} />
                       </div>
-                      {!isCollapsed && (
+                    </div>
+                  ) : (
+                    <div className="px-2 py-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-5 h-5 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                          <IconComponent className={`w-3 h-3 text-${nodeType.color}-400 transition-all`} />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <Text size="1" weight="medium" className="text-white block truncate">
                             {nodeType.label}
                           </Text>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </Card>
               );
             })}
