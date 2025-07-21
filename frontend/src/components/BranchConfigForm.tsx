@@ -1,9 +1,20 @@
 import React, { useEffect } from 'react';
 import { Node } from 'reactflow';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, Text, TextField, Card, Flex, Switch, Select } from '@radix-ui/themes';
-import { PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { NodeData } from '../types';
+import { ConfigFormBase, ConfigSection } from './common/ConfigFormBase';
+import { 
+  ConfigTextField, 
+  ConfigSelectField,
+  ConfigSwitchField,
+  ConfigDynamicListField
+} from './common/ConfigFormFields';
+import { 
+  BorderSplitIcon, 
+  QuestionMarkIcon,
+  PlusIcon
+} from '@radix-ui/react-icons';
+import { Flex, Text } from '@radix-ui/themes';
 
 interface BranchConfigFormProps {
   node: Node<NodeData>;
@@ -11,11 +22,27 @@ interface BranchConfigFormProps {
   availableVariables: string[];
 }
 
-export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({ node, onConfigChange, availableVariables }) => {
-  const { control, register, watch, reset, setValue } = useForm({
+interface ConditionData {
+  condition: string;
+  variable: string;
+  operator: string;
+  value: string;
+}
+
+interface FormData {
+  conditions: ConditionData[];
+  hasElse: boolean;
+}
+
+export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({ 
+  node, 
+  onConfigChange, 
+  availableVariables 
+}) => {
+  const { control, setValue, watch, reset } = useForm<FormData>({
     defaultValues: {
-      conditions: node.data.config.conditions || [{ condition: '', variable: '', operator: '==', value: '' }],
-      hasElse: node.data.config.hasElse || false,
+      conditions: node.data.config?.conditions || [{ condition: '', variable: '', operator: '==', value: '' }],
+      hasElse: node.data.config?.hasElse || false,
     },
   });
 
@@ -26,192 +53,222 @@ export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({ node, onConf
 
   useEffect(() => {
     reset({
-      conditions: node.data.config.conditions || [{ condition: '', variable: '', operator: '==', value: '' }],
-      hasElse: node.data.config.hasElse || false,
+      conditions: node.data.config?.conditions || [{ condition: '', variable: '', operator: '==', value: '' }],
+      hasElse: node.data.config?.hasElse || false,
     });
   }, [node, reset]);
 
-  const handleBlur = () => {
-    onConfigChange(watch());
-  };
+  useEffect(() => {
+    const subscription = watch((data) => {
+      onConfigChange(data);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, onConfigChange]);
 
   const handleAddCondition = () => {
     append({ condition: '', variable: '', operator: '==', value: '' });
-    setTimeout(() => onConfigChange(watch()), 0);
   };
 
   const handleRemoveCondition = (index: number) => {
     if (fields.length > 1) {
       remove(index);
-      setTimeout(() => onConfigChange(watch()), 0);
     }
   };
 
   const handleVariableSelect = (index: number, variable: string) => {
-    setValue(`conditions.${index}.variable`, variable, { shouldDirty: true });
-    // 自动构建condition字符串
-    const currentCondition = watch(`conditions.${index}`);
-    const newCondition = `{{${variable}}} ${currentCondition.operator || '=='} ${currentCondition.value || ''}`;
-    setValue(`conditions.${index}.condition`, newCondition, { shouldDirty: true });
-    setTimeout(() => onConfigChange(watch()), 0);
+    setValue(`conditions.${index}.variable`, variable);
+    updateConditionString(index, variable, null, null);
   };
 
   const handleOperatorChange = (index: number, operator: string) => {
-    setValue(`conditions.${index}.operator`, operator, { shouldDirty: true });
-    const currentCondition = watch(`conditions.${index}`);
-    const newCondition = `{{${currentCondition.variable || ''}}} ${operator} ${currentCondition.value || ''}`;
-    setValue(`conditions.${index}.condition`, newCondition, { shouldDirty: true });
-    setTimeout(() => onConfigChange(watch()), 0);
+    setValue(`conditions.${index}.operator`, operator);
+    updateConditionString(index, null, operator, null);
   };
 
   const handleValueChange = (index: number, value: string) => {
-    setValue(`conditions.${index}.value`, value, { shouldDirty: true });
-    const currentCondition = watch(`conditions.${index}`);
-    const newCondition = `{{${currentCondition.variable || ''}}} ${currentCondition.operator || '=='} ${value}`;
-    setValue(`conditions.${index}.condition`, newCondition, { shouldDirty: true });
-    setTimeout(() => onConfigChange(watch()), 0);
+    setValue(`conditions.${index}.value`, value);
+    updateConditionString(index, null, null, value);
   };
 
-  const handleElseToggle = (checked: boolean) => {
-    setValue('hasElse', checked, { shouldDirty: true });
-    setTimeout(() => onConfigChange(watch()), 0);
+  const updateConditionString = (index: number, variable?: string | null, operator?: string | null, value?: string | null) => {
+    const currentCondition = watch(`conditions.${index}`);
+    const newVariable = variable !== null ? variable : currentCondition.variable;
+    const newOperator = operator !== null ? operator : currentCondition.operator;
+    const newValue = value !== null ? value : currentCondition.value;
+    
+    const conditionString = `{{${newVariable}}} ${newOperator} ${newValue}`;
+    setValue(`conditions.${index}.condition`, conditionString);
   };
+
+  const operatorOptions = [
+    { value: '==', label: '等于 (==)' },
+    { value: '!=', label: '不等于 (!=)' },
+    { value: '>', label: '大于 (>)' },
+    { value: '<', label: '小于 (<)' },
+    { value: '>=', label: '大于等于 (>=)' },
+    { value: '<=', label: '小于等于 (<=)' },
+    { value: 'contains', label: '包含 (contains)' },
+    { value: 'not_contains', label: '不包含 (not contains)' },
+    { value: 'starts_with', label: '开始于 (starts with)' },
+    { value: 'ends_with', label: '结束于 (ends with)' },
+  ];
 
   return (
-    <div onBlur={handleBlur} className="space-y-4">
-      <div>
-        <Text size="3" weight="medium" className="text-white mb-3 block">
-          Condition Branches
-        </Text>
-        <Text size="1" className="text-[var(--color-text-secondary)] mb-4 block">
-          Connect multiple downstream branches. Only the corresponding branch will be executed if the set conditions are met.
-        </Text>
-      </div>
-
-      <div className="space-y-3">
-        {fields.map((field, index) => (
-          <Card key={field.id} className="p-4 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Text size="2" weight="medium" className="text-white">
-                  {index === 0 ? 'If' : 'Else if'}
+    <ConfigFormBase
+      title="Branch Configuration"
+      nodeType="branch"
+      availableVariables={availableVariables}
+    >
+      {/* Conditions */}
+      <ConfigSection
+        title="条件配置"
+        description="配置分支条件，支持多条件判断"
+        icon={<BorderSplitIcon />}
+        badge={{ text: `${fields.length} 条件`, color: 'yellow' }}
+      >
+        <ConfigDynamicListField
+          label="分支条件"
+          items={fields}
+          onAdd={handleAddCondition}
+          onRemove={handleRemoveCondition}
+          addButtonText="添加条件"
+          minItems={1}
+          helpText="添加条件来控制分支逻辑"
+          renderItem={(field, index) => (
+            <div className="space-y-3 p-4 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Text size="2" weight="medium" className="text-[var(--color-text-primary)]">
+                  {index === 0 ? 'If' : `Else If ${index}`}
                 </Text>
                 <Text size="1" className="text-[var(--color-text-secondary)]">
-                  Priority {index + 1}
+                  条件 {index + 1}
                 </Text>
               </div>
-              {fields.length > 1 && (
-                <Button
-                  type="button"
-                  size="1"
-                  variant="ghost"
-                  color="red"
-                  onClick={() => handleRemoveCondition(index)}
-                >
-                  <TrashIcon className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
 
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Text size="1" className="text-[var(--color-text-secondary)] mb-1 block">
-                    Variable
-                  </Text>
-                  <Flex gap="1">
-                    <Select.Root
-                      value={watch(`conditions.${index}.variable`) || ''}
-                      onValueChange={(value) => handleVariableSelect(index, value)}
-                    >
-                      <Select.Trigger placeholder="Please select" className="flex-1" />
-                      <Select.Content position="popper" sideOffset={4} className="z-50">
-                        {availableVariables.map((variable) => (
-                          <Select.Item key={variable} value={variable.replace(/[{}]/g, '')}>
-                            {variable}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Root>
-                  </Flex>
-                </div>
-
-                <div>
-                  <Text size="1" className="text-[var(--color-text-secondary)] mb-1 block">
-                    Operator
-                  </Text>
-                  <Select.Root
-                    value={watch(`conditions.${index}.operator`) || '=='}
-                    onValueChange={(value) => handleOperatorChange(index, value)}
-                  >
-                    <Select.Trigger />
-                    <Select.Content position="popper" sideOffset={4} className="z-50">
-                      <Select.Item value="==">Equals</Select.Item>
-                      <Select.Item value="!=">Not equals</Select.Item>
-                      <Select.Item value=">">Greater than</Select.Item>
-                      <Select.Item value="<">Less than</Select.Item>
-                      <Select.Item value=">=">Greater or equal</Select.Item>
-                      <Select.Item value="<=">Less or equal</Select.Item>
-                      <Select.Item value="in">Contains</Select.Item>
-                      <Select.Item value="not in">Not contains</Select.Item>
-                    </Select.Content>
-                  </Select.Root>
-                </div>
-
-                <div>
-                  <Text size="1" className="text-[var(--color-text-secondary)] mb-1 block">
-                    Value
-                  </Text>
-                  <TextField.Root
-                    placeholder="Enter or reference parameter values"
-                    {...register(`conditions.${index}.value`)}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleValueChange(index, e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Text size="1" className="text-[var(--color-text-secondary)] mb-1 block">
-                  Condition Expression
-                </Text>
-                <TextField.Root
-                  placeholder="Auto-generated or custom expression"
-                  {...register(`conditions.${index}.condition`)}
-                  className="font-mono text-xs"
+              <div className="grid grid-cols-1 gap-3">
+                {/* Variable Selection */}
+                <ConfigSelectField
+                  label="变量"
+                  value={field.variable}
+                  onChange={(value) => handleVariableSelect(index, value)}
+                  options={availableVariables.map(variable => ({ 
+                    value: variable, 
+                    label: variable 
+                  }))}
+                  placeholder="选择变量"
                 />
+
+                {/* Operator Selection */}
+                <ConfigSelectField
+                  label="操作符"
+                  value={field.operator}
+                  onChange={(value) => handleOperatorChange(index, value)}
+                  options={operatorOptions}
+                />
+
+                {/* Value Input */}
+                <ConfigTextField
+                  label="比较值"
+                  value={field.value}
+                  onChange={(value) => handleValueChange(index, value)}
+                  placeholder="输入比较值"
+                />
+
+                {/* Generated Condition */}
+                <div className="mt-2">
+                  <Text size="1" className="text-[var(--color-text-secondary)] mb-1 block">
+                    生成的条件表达式：
+                  </Text>
+                  <div className="p-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] font-mono text-sm">
+                    {field.condition || '请配置完整条件'}
+                  </div>
+                </div>
               </div>
             </div>
-          </Card>
-        ))}
+          )}
+        />
+      </ConfigSection>
 
-        <Button
-          type="button"
-          size="2"
-          variant="outline"
-          onClick={handleAddCondition}
-          className="w-full"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Condition
-        </Button>
-      </div>
+      {/* Else Branch */}
+      <ConfigSection
+        title="默认分支"
+        description="配置当所有条件都不满足时的默认分支"
+        icon={<QuestionMarkIcon />}
+        collapsible
+        defaultExpanded={watch('hasElse')}
+      >
+        <ConfigSwitchField
+          label="启用 Else 分支"
+          checked={watch('hasElse')}
+          onChange={(checked) => setValue('hasElse', checked)}
+          helpText="当所有条件都不满足时，执行默认分支"
+        />
 
-      <div className="pt-4 border-t border-[var(--color-border-primary)]">
-        <Flex justify="between" align="center">
-          <div>
-            <Text size="2" weight="medium" className="text-white block">
-              Else Branch
+        {watch('hasElse') && (
+          <div className="mt-4 p-4 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg">
+            <Text size="2" weight="medium" className="text-[var(--color-text-primary)] mb-2 block">
+              默认分支
             </Text>
             <Text size="1" className="text-[var(--color-text-secondary)]">
-              Execute if no conditions are met
+              当上述所有条件都不满足时，工作流将执行此分支。这是一个可选的分支，用于处理异常情况或提供默认行为。
             </Text>
           </div>
-          <Switch
-            checked={watch('hasElse')}
-            onCheckedChange={handleElseToggle}
-          />
-        </Flex>
-      </div>
-    </div>
+        )}
+      </ConfigSection>
+
+      {/* Branch Summary */}
+      <ConfigSection
+        title="分支总览"
+        description="查看所有配置的分支路径"
+        icon={<BorderSplitIcon />}
+        collapsible
+        defaultExpanded={false}
+      >
+        <div className="space-y-3">
+          <Text size="2" weight="medium" className="text-[var(--color-text-primary)]">
+            分支路径概览
+          </Text>
+          
+          <div className="space-y-2">
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex items-center gap-3 p-2 bg-[var(--color-bg-secondary)] rounded">
+                <div className="w-16 text-center">
+                  <Text size="1" className="text-[var(--color-text-secondary)]">
+                    {index === 0 ? 'If' : `Else If`}
+                  </Text>
+                </div>
+                <div className="flex-1">
+                  <Text size="1" className="font-mono text-[var(--color-text-primary)]">
+                    {field.condition || '未配置条件'}
+                  </Text>
+                </div>
+                <div className="w-8 h-3 bg-yellow-500/20 border border-yellow-400 rounded-sm"></div>
+              </div>
+            ))}
+            
+            {watch('hasElse') && (
+              <div className="flex items-center gap-3 p-2 bg-[var(--color-bg-secondary)] rounded">
+                <div className="w-16 text-center">
+                  <Text size="1" className="text-[var(--color-text-secondary)]">
+                    Else
+                  </Text>
+                </div>
+                <div className="flex-1">
+                  <Text size="1" className="text-[var(--color-text-primary)]">
+                    默认分支（所有条件都不满足时）
+                  </Text>
+                </div>
+                <div className="w-8 h-3 bg-gray-500/20 border border-gray-400 rounded-sm"></div>
+              </div>
+            )}
+          </div>
+
+          <Text size="1" className="text-[var(--color-text-secondary)]">
+            总共 {fields.length + (watch('hasElse') ? 1 : 0)} 个分支路径
+          </Text>
+        </div>
+      </ConfigSection>
+    </ConfigFormBase>
   );
 }; 

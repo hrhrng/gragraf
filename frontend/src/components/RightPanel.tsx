@@ -119,14 +119,8 @@ const RightPanel: React.FC<RightPanelProps> = ({
 
   // 显示配置面板（当有选中节点时）
   if (selectedNode) {
-    return (
-      <ConfigPanel 
-        nodes={nodes}
-        edges={edges}
-        selectedNode={selectedNode} 
-        onConfigChange={onConfigChange} 
-      />
-    );
+    // ConfigPanel现在是浮窗，不在RightPanel中显示
+    return null;
   }
 
   // 当没有选中节点且有结果或正在加载时，显示结果面板

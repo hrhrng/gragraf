@@ -21,6 +21,7 @@ import { Sidebar } from './components/Sidebar';
 import { initialNodes, nodeTypes } from './nodes';
 import { NodeData } from './types';
 import RightPanel from './components/RightPanel';
+import ConfigPanel from './components/ConfigPanel';
 import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
 import { WorkflowListDialog } from './components/WorkflowListDialog';
 import { ApprovalModal } from './components/ApprovalModal';
@@ -946,6 +947,14 @@ function App() {
         runFormInputs={startNodeInputs}
         onRunSubmit={handleRunSubmit}
         onRunCancel={handleRunCancel}
+      />
+      
+      {/* Configuration Panel - 浮窗 */}
+      <ConfigPanel 
+        nodes={nodes}
+        edges={edges}
+        selectedNode={selectedNode} 
+        onConfigChange={onConfigChange}
       />
       
       {/* Bottom Run Button + Auto Layout Icon */}

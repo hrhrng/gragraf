@@ -2,11 +2,10 @@ import React from 'react';
 import { Box } from '@radix-ui/themes';
 import { Node } from 'reactflow';
 
-import HttpRequestConfigForm from './components/node-configs/HttpRequestConfigForm';
-
-import BranchConfigForm from './components/node-configs/BranchConfigForm';
-import KnowledgeBaseConfigForm from './components/node-configs/KnowledgeBaseConfigForm';
-import AgentConfigForm from './components/node-configs/AgentConfigForm';
+import { HttpRequestConfigForm } from './components/HttpRequestConfigForm';
+import { BranchConfigForm } from './components/BranchConfigForm';
+import { KnowledgeBaseConfigForm } from './components/KnowledgeBaseConfigForm';
+import { AgentConfigForm } from './components/AgentConfigForm';
 
 type ConfigPanelProps = {
   selectedNode: Node | null;
@@ -18,17 +17,20 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, onConfigChange 
     return null;
   }
 
+  const handleConfigChange = (config: any) => {
+    onConfigChange(selectedNode.id, config);
+  };
+
   const renderConfigForm = () => {
     switch (selectedNode.data.label) {
       case 'HTTP Request':
-        return <HttpRequestConfigForm node={selectedNode} onConfigChange={onConfigChange} />;
-
+        return <HttpRequestConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       case 'Branch':
-        return <BranchConfigForm node={selectedNode} onConfigChange={onConfigChange} />;
+        return <BranchConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       case 'Knowledge Base':
-        return <KnowledgeBaseConfigForm node={selectedNode} onConfigChange={onConfigChange} />;
+        return <KnowledgeBaseConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       case 'Agent':
-        return <AgentConfigForm node={selectedNode} onConfigChange={onConfigChange} />;
+        return <AgentConfigForm node={selectedNode} onConfigChange={handleConfigChange} availableVariables={[]} />;
       default:
         return null;
     }
