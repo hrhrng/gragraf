@@ -71,16 +71,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
       {/* Header */}
       <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-b border-[var(--color-border-primary)] ${isCollapsed ? 'h-12' : 'h-12'} flex items-center`}>
         {isCollapsed ? (
-          <div className="w-full flex items-center justify-center relative">
+          <div className="w-full flex items-center justify-between">
+            <div></div>
             <Text className="text-white" style={{ fontFamily: 'Bellota Text, Arial, sans-serif', fontWeight: 300, fontSize: '1.5rem' }}>
               G
             </Text>
             <button
               onClick={toggleCollapse}
-              className="absolute right-0 p-1 hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
+              className="p-0.5 hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
               title="展开侧边栏"
             >
-              <ChevronRightIcon className="w-4 h-4 text-white" />
+              <ChevronRightIcon className="w-3 h-3 text-white" />
             </button>
           </div>
         ) : (
