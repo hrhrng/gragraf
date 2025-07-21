@@ -31,14 +31,14 @@ const nodeTypes = [
     type: 'agent', 
     label: 'Agent', 
     icon: PersonIcon, 
-    color: 'custom',
+    color: 'purple',
     description: 'AI agent processing'
   },
   { 
     type: 'knowledgeBase', 
     label: 'Knowledge Base', 
     icon: BookmarkIcon, 
-    color: 'cyan',
+    color: 'green',
     description: 'Query knowledge base'
   },
   { 
@@ -70,8 +70,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
       </div>
 
       {/* Node Library */}
-      <div className="flex-1 p-6 overflow-visible">
-        <div className="flex items-center gap-2 mb-6">
+      <div className="flex-1 p-4 overflow-visible">
+        <div className="flex items-center gap-2 mb-4">
           <PlusIcon className="w-4 h-4 text-[var(--color-accent)]" />
           <Heading size="3" className="text-white">
             Add Nodes
@@ -80,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
         
         {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
         <div className="h-full overflow-y-auto overflow-x-visible">
-          <div className="space-y-3">
+          <div className="space-y-2">
             {nodeTypes.map((nodeType) => {
               const IconComponent = nodeType.icon;
               return (
@@ -89,14 +89,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   className="group cursor-pointer relative transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:z-20 bg-[var(--color-bg-tertiary)] hover:border-[var(--color-accent)] border-[var(--color-border-primary)] animate-fade-in"
                   onClick={() => onAddNode(nodeType.type, nodeType.label)}
                 >
-                  <div className="p-4">
+                  <div className="p-3">
                     <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className="w-5 h-5 text-white transition-all" />
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
+                        <IconComponent className={`w-4 h-4 text-${nodeType.color}-400 transition-all`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <Text size="3" weight="medium" className="text-white">
+                          <Text size="2" weight="medium" className="text-white">
                             {nodeType.label}
                           </Text>
                         </div>
@@ -112,7 +112,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
           </div>
         </div>
       </div>
-
 
     </div>
   );
