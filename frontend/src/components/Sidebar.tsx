@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   {isCollapsed ? (
                     <div className="w-10 h-10 flex items-center justify-center mx-auto">
                       <div className={`w-10 h-10 rounded flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className={`w-5 h-5 text-${nodeType.color}-400 transition-all`} />
+                        <IconComponent className={`w-4 h-4 text-${nodeType.color}-400 transition-all`} />
                       </div>
                     </div>
                   ) : (
