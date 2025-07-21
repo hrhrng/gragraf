@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
       </div>
 
       {/* Node Library */}
-      <div className={`flex-1 ${isCollapsed ? 'p-1' : 'p-2.5'} overflow-visible`}>
+      <div className={`flex-1 ${isCollapsed ? 'p-1' : 'p-3'} overflow-visible`}>
         {!isCollapsed && (
           <div className="flex items-center gap-1.5 mb-2.5">
             <PlusIcon className="w-3.5 h-3.5 text-[var(--color-accent)]" />
@@ -103,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
         
         {/* 用原生 div 替代 ScrollArea，支持 overflow 可见 */}
         <div className="h-full overflow-y-auto overflow-x-visible">
-          <div className={`${isCollapsed ? 'space-y-2' : 'space-y-1'}`}>
+          <div className={`${isCollapsed ? 'space-y-2 px-1' : 'space-y-1 px-1'}`}>
             {nodeTypes.map((nodeType) => {
               const IconComponent = nodeType.icon;
               return (
