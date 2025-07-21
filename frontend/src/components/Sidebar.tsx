@@ -92,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                   <div className="p-4">
                     <div className="flex items-start gap-3">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${nodeType.color}-500/10 border border-${nodeType.color}-500/20 group-hover:bg-${nodeType.color}-500/20 transition-colors`}>
-                        <IconComponent className={`w-5 h-5 text-${nodeType.color}-400`} />
+                        <IconComponent className={`w-5 h-5 text-${nodeType.color}-400 opacity-60 group-hover:opacity-80 transition-opacity`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
