@@ -98,9 +98,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onAddNode, nodes }) => {
                         <Text size="1" weight="medium" className="text-white block">
                           {nodeType.label}
                         </Text>
-                        <Text size="1" className="text-[var(--color-text-secondary)] leading-tight block opacity-80">
-                          {nodeType.description}
-                        </Text>
                       </div>
                     </div>
                   </div>
