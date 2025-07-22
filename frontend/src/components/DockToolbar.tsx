@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlayIcon, BorderSplitIcon } from '@radix-ui/react-icons';
+import { PlayIcon, LayoutIcon } from '@radix-ui/react-icons';
 
 interface DockToolbarProps {
   onRunWorkflow: () => void;
@@ -110,7 +110,7 @@ export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoL
           label="Run Workflow"
           variant="primary"
         >
-          <PlayIcon className="w-5 h-5" />
+          <PlayIcon className="w-4 h-4" />
         </DockItem>
         
         {/* Separator */}
@@ -123,7 +123,7 @@ export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoL
           label="Auto Layout"
           variant="secondary"
         >
-          <BorderSplitIcon className="w-5 h-5" />
+          <LayoutIcon className="w-4 h-4" />
         </DockItem>
       </div>
     </div>

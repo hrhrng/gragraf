@@ -25,10 +25,10 @@ import ConfigPanel from './components/ConfigPanel';
 import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
 import { WorkflowListDialog } from './components/WorkflowListDialog';
 import { ApprovalModal } from './components/ApprovalModal';
-import { Button, Tooltip } from '@radix-ui/themes';
-import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon, BorderSplitIcon, PlusIcon, FilePlusIcon } from '@radix-ui/react-icons';
+import { BookmarkIcon, MagnifyingGlassIcon, Cross1Icon, PlusIcon, FilePlusIcon } from '@radix-ui/react-icons';
 import { workflowApi, Workflow } from './services/workflowApi';
 import { DockToolbar } from './components/DockToolbar';
+import { UnifiedButton } from './components/UnifiedButton';
 
 // Map frontend node types to backend expected types
 const mapNodeTypeToBackend = (frontendType: string): string => {
@@ -857,63 +857,47 @@ function App() {
             {/* 如果是现有工作流，显示快速保存和另存为按钮 */}
             {currentWorkflow ? (
               <>
-                <Tooltip content="另存为">
-                  <Button
-                    size="2"
-                    variant="outline"
-                    onClick={() => setSaveDialogOpen(true)}
-                    className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-                  >
-                    <FilePlusIcon className="w-4 h-4" />
-                  </Button>
-                </Tooltip>
-                <Tooltip content="保存">
-                  <Button
-                    size="2"
-                    variant="soft"
-                    onClick={handleQuickSave}
-                    disabled={saveLoading}
-                    className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-                  >
-                    <BookmarkIcon className="w-4 h-4" />
-                    {saveLoading ? '保存中...' : ''}
-                  </Button>
-                </Tooltip>
-              </>
-            ) : (
-              <Tooltip content="保存">
-                <Button
-                  size="2"
-                  variant="soft"
+                <UnifiedButton
+                  tooltip="另存为"
                   onClick={() => setSaveDialogOpen(true)}
-                  className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+                  variant="secondary"
+                >
+                  <FilePlusIcon className="w-4 h-4" />
+                </UnifiedButton>
+                <UnifiedButton
+                  tooltip={saveLoading ? '保存中...' : '保存'}
+                  onClick={handleQuickSave}
+                  disabled={saveLoading}
+                  variant="primary"
                 >
                   <BookmarkIcon className="w-4 h-4" />
-                </Button>
-              </Tooltip>
+                </UnifiedButton>
+              </>
+            ) : (
+              <UnifiedButton
+                tooltip="保存"
+                onClick={() => setSaveDialogOpen(true)}
+                variant="primary"
+              >
+                <BookmarkIcon className="w-4 h-4" />
+              </UnifiedButton>
             )}
             
-            <Tooltip content="新建工作流">
-              <Button
-                size="2"
-                variant="soft"
-                onClick={handleNewWorkflow}
-                className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-              >
-                <PlusIcon className="w-4 h-4" />
-              </Button>
-            </Tooltip>
+            <UnifiedButton
+              tooltip="新建工作流"
+              onClick={handleNewWorkflow}
+              variant="secondary"
+            >
+              <PlusIcon className="w-4 h-4" />
+            </UnifiedButton>
             
-            <Tooltip content="搜索工作流">
-              <Button
-                size="2"
-                variant="soft"
-                onClick={() => setListDialogOpen(true)}
-                className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-              >
-                <MagnifyingGlassIcon className="w-4 h-4" />
-              </Button>
-            </Tooltip>
+            <UnifiedButton
+              tooltip="搜索工作流"
+              onClick={() => setListDialogOpen(true)}
+              variant="secondary"
+            >
+              <MagnifyingGlassIcon className="w-4 h-4" />
+            </UnifiedButton>
           </div>
 
           {/* 当前工作流信息 */}
