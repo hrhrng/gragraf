@@ -53,56 +53,18 @@ const DockItem: React.FC<DockItemProps> = ({ children, onClick, label, variant =
       >
         <div
           className={`
-            w-10 h-10 rounded-lg
-            flex items-center justify-center
+            w-7 h-7 rounded flex items-center justify-center
             transition-all duration-200
-            relative
-            border border-[var(--color-border-primary)]
+            border
             ${variant === 'primary' 
-              ? 'bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)]' 
-              : 'bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)]'
+              ? 'bg-blue-900/20 border-blue-700/30 text-blue-300'
+              : 'bg-gray-700/20 border-gray-600/30 text-gray-300'
             }
-            ${isHovered ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' : ''}
+            ${isHovered && variant === 'primary' ? 'bg-blue-800/30 text-blue-200 border-blue-600/40' : ''}
+            ${isHovered && variant === 'secondary' ? 'bg-gray-600/30 text-gray-200 border-gray-500/40' : ''}
           `}
         >
-          {/* Icon container with colored background - similar to sidebar nodes */}
-          <div
-            className={`
-              w-6 h-6 rounded flex items-center justify-center
-              transition-all duration-200
-              ${variant === 'primary' 
-                ? 'bg-blue-900/20 border-blue-700/30 border'
-                : 'bg-gray-700/20 border-gray-600/30 border'
-              }
-              ${isHovered && variant === 'primary' ? 'bg-blue-800/30' : ''}
-              ${isHovered && variant === 'secondary' ? 'bg-gray-600/30' : ''}
-            `}
-          >
-            <div className={`
-              ${variant === 'primary' 
-                ? 'text-blue-300' 
-                : 'text-gray-300'
-              }
-              ${isHovered && variant === 'primary' ? 'text-blue-200' : ''}
-              ${isHovered && variant === 'secondary' ? 'text-gray-200' : ''}
-              transition-colors duration-200
-            `}>
-              {children}
-            </div>
-          </div>
-          
-          {/* Subtle inner highlight */}
-          <div
-            className={`
-              absolute inset-0 rounded-lg
-              pointer-events-none
-              transition-opacity duration-200
-              ${isHovered ? 'opacity-100' : 'opacity-0'}
-            `}
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)',
-            }}
-          />
+          {children}
         </div>
       </div>
     </div>
