@@ -17,6 +17,7 @@ import { Text } from '@radix-ui/themes';
 interface StartConfigFormProps {
   node: Node<NodeData>;
   onConfigChange: (config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
 }
 
 interface InputField {
@@ -29,7 +30,8 @@ interface FormData {
 
 export const StartConfigForm: React.FC<StartConfigFormProps> = ({ 
   node, 
-  onConfigChange 
+  onConfigChange,
+  onNodeChange
 }) => {
   const { control, setValue, watch, reset } = useForm<FormData>({
     defaultValues: {
@@ -64,8 +66,9 @@ export const StartConfigForm: React.FC<StartConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      title="Start Node Configuration"
+      nodeLabel={node.data.label || 'Start Node'}
       nodeType="start"
+      onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       showVariables={false}
     >
       {/* Input Configuration */}

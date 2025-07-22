@@ -20,6 +20,7 @@ interface FloatingPanelProps {
   edges: Edge[];
   selectedNode: Node<NodeData> | null;
   onNodeUpdate: (nodeId: string, updates: Partial<NodeData>) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
   onClose: () => void;
   isVisible: boolean;
   executionResults?: any;
@@ -45,6 +46,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
   edges,
   selectedNode,
   onNodeUpdate,
+  onNodeChange,
   onClose,
   isVisible,
   executionResults,
@@ -81,6 +83,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
       onConfigChange: (config: any) => {
         onNodeUpdate(selectedNode.id, { config });
       },
+      onNodeChange,
       availableVariables
     };
 
@@ -94,7 +97,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
       case 'branch':
         return <BranchConfigForm {...commonProps} />;
       case 'start':
-        return <StartConfigForm {...commonProps} />;
+        return <StartConfigForm node={selectedNode} onConfigChange={commonProps.onConfigChange} onNodeChange={commonProps.onNodeChange} />;
       case 'end':
         return <EndConfigForm {...commonProps} />;
       default:

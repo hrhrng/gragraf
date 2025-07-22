@@ -17,6 +17,7 @@ import { Text, Flex } from '@radix-ui/themes';
 interface EndConfigFormProps {
   node: Node<NodeData>;
   onConfigChange: (config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
   availableVariables: string[];
 }
 
@@ -32,6 +33,7 @@ interface FormData {
 export const EndConfigForm: React.FC<EndConfigFormProps> = ({ 
   node, 
   onConfigChange, 
+  onNodeChange,
   availableVariables 
 }) => {
   const { control, setValue, watch, reset } = useForm<FormData>({
@@ -73,8 +75,9 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      title="End Node Configuration"
+      nodeLabel={node.data.label || 'End Node'}
       nodeType="end"
+      onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}
     >
       {/* Output Configuration */}

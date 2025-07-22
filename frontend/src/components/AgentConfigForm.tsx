@@ -19,6 +19,7 @@ import { Badge, Text } from '@radix-ui/themes';
 interface AgentConfigFormProps {
   node: Node<NodeData>;
   onConfigChange: (config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
   availableVariables: string[];
 }
 
@@ -33,6 +34,7 @@ interface FormData {
 export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({ 
   node, 
   onConfigChange, 
+  onNodeChange,
   availableVariables 
 }) => {
   const { setValue, watch, reset } = useForm<FormData>({
@@ -99,8 +101,9 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      title="Agent Configuration"
+      nodeLabel={node.data.label || 'Agent Node'}
       nodeType="agent"
+      onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}
     >
       {/* Model Configuration */}

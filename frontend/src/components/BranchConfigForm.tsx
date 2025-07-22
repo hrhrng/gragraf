@@ -19,6 +19,7 @@ import { Flex, Text } from '@radix-ui/themes';
 interface BranchConfigFormProps {
   node: Node<NodeData>;
   onConfigChange: (config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
   availableVariables: string[];
 }
 
@@ -37,6 +38,7 @@ interface FormData {
 export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({ 
   node, 
   onConfigChange, 
+  onNodeChange,
   availableVariables 
 }) => {
   const { control, setValue, watch, reset } = useForm<FormData>({
@@ -116,8 +118,9 @@ export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      title="Branch Configuration"
+      nodeLabel={node.data.label || 'Branch Node'}
       nodeType="branch"
+      onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}
     >
       {/* Conditions */}

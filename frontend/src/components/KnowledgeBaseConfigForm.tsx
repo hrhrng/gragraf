@@ -18,6 +18,7 @@ import { Text } from '@radix-ui/themes';
 interface KnowledgeBaseConfigFormProps {
   node: Node<NodeData>;
   onConfigChange: (config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
   availableVariables: string[];
 }
 
@@ -31,10 +32,11 @@ interface FormData {
   chunk_overlap: number;
 }
 
-export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = ({ 
-  node, 
-  onConfigChange, 
-  availableVariables 
+export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = ({
+  node,
+  onConfigChange,
+  onNodeChange,
+  availableVariables
 }) => {
   const { setValue, watch, reset } = useForm<FormData>({
     defaultValues: {
@@ -88,8 +90,9 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
 
   return (
     <ConfigFormBase
-      title="Knowledge Base Configuration"
+      nodeLabel={node.data.label || 'Knowledge Base'}
       nodeType="knowledgeBase"
+      onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}
     >
       {/* Data Sources */}

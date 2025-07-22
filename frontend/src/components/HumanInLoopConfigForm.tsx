@@ -19,6 +19,7 @@ import { Text, Flex } from '@radix-ui/themes';
 interface HumanInLoopConfigFormProps {
   node: Node<NodeData>;
   onConfigChange: (config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
 }
 
 interface FormData {
@@ -29,9 +30,10 @@ interface FormData {
   require_comment: boolean;
 }
 
-export const HumanInLoopConfigForm: React.FC<HumanInLoopConfigFormProps> = ({
-  node,
-  onConfigChange
+export const HumanInLoopConfigForm: React.FC<HumanInLoopConfigFormProps> = ({ 
+  node, 
+  onConfigChange,
+  onNodeChange
 }) => {
   const { setValue, watch, reset } = useForm<FormData>({
     defaultValues: {
@@ -63,8 +65,9 @@ export const HumanInLoopConfigForm: React.FC<HumanInLoopConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      title="Human Approval Configuration"
+      nodeLabel={node.data.label || 'Human Approval'}
       nodeType="humanInLoop"
+      onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       showVariables={false}
     >
       {/* Message Configuration */}

@@ -20,6 +20,7 @@ import { Flex } from '@radix-ui/themes';
 interface HttpRequestConfigFormProps {
   node: Node<NodeData>;
   onConfigChange: (config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
   availableVariables: string[];
 }
 
@@ -41,10 +42,11 @@ interface FormData {
   user_agent: string;
 }
 
-export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({
-  node,
-  onConfigChange,
-  availableVariables
+export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({ 
+  node, 
+  onConfigChange, 
+  onNodeChange,
+  availableVariables 
 }) => {
   const { control, register, setValue, watch, reset } = useForm<FormData>({
     defaultValues: {
@@ -128,8 +130,9 @@ export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      title="HTTP Request Configuration"
+      nodeLabel={node.data.label || 'HTTP Request'}
       nodeType="httpRequest"
+      onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}
     >
       {/* Basic Configuration */}

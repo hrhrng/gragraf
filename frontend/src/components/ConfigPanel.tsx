@@ -1,7 +1,6 @@
 import React from 'react';
 import { Node, Edge } from 'reactflow';
-import { Text, Heading, ScrollArea, Badge } from '@radix-ui/themes';
-import { GearIcon } from '@radix-ui/react-icons';
+import { ScrollArea } from '@radix-ui/themes';
 import { NodeData } from '../types';
 import { HttpRequestConfigForm } from './HttpRequestConfigForm';
 import { AgentConfigForm } from './AgentConfigForm';
@@ -16,6 +15,7 @@ interface ConfigPanelProps {
   edges: Edge[];
   selectedNode: Node<NodeData> | null;
   onConfigChange: (nodeId: string, config: any) => void;
+  onNodeChange: (nodeUpdates: Partial<Node<NodeData>>) => void;
 }
 
 // Helper function to find all ancestor nodes for a given node
@@ -54,7 +54,7 @@ const getAvailableVariables = (nodeId: string, nodes: Node[], edges: Edge[]): st
   return Array.from(allVariables);
 };
 
-const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, onConfigChange }) => {
+const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, onConfigChange, onNodeChange }) => {
   if (!selectedNode) {
     return null; // 没有选中节点时不显示浮窗
   }
@@ -67,34 +67,18 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
 
   return (
     <div className="fixed right-6 top-20 bottom-6 w-96 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl shadow-2xl shadow-black/20 flex flex-col z-50 animate-fade-in backdrop-blur-sm">
-      {/* Header */}
-      <div className="p-6 border-b border-[var(--color-border-primary)] rounded-t-xl bg-[var(--color-bg-secondary)]/95">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-            <GearIcon className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <Heading size="3" className="text-white">
-              Node Configuration
-            </Heading>
-            <Text size="1" className="text-[var(--color-text-secondary)]">
-              {selectedNode.data.label} • {selectedNode.id.slice(0, 8)}
-            </Text>
-          </div>
-        </div>
-      </div>
-
       {/* Configuration Form */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-6 space-y-6">
             {selectedNode.type === 'start' && (
-              <StartConfigForm node={selectedNode} onConfigChange={handleConfigChange} />
+              <StartConfigForm node={selectedNode} onConfigChange={handleConfigChange} onNodeChange={onNodeChange} />
             )}
             {selectedNode.type === 'end' && (
               <EndConfigForm 
                   node={selectedNode} 
-                  onConfigChange={handleConfigChange} 
+                  onConfigChange={handleConfigChange}
+                  onNodeChange={onNodeChange}
                   availableVariables={availableVariables}
               />
             )}
@@ -102,6 +86,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
               <HttpRequestConfigForm 
                 node={selectedNode} 
                 onConfigChange={handleConfigChange}
+                onNodeChange={onNodeChange}
                 availableVariables={availableVariables}
               />
             )}
@@ -109,6 +94,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
               <AgentConfigForm 
                 node={selectedNode} 
                 onConfigChange={handleConfigChange}
+                onNodeChange={onNodeChange}
                 availableVariables={availableVariables}
               />
             )}
@@ -116,13 +102,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
               <KnowledgeBaseConfigForm
                 node={selectedNode}
                 onConfigChange={handleConfigChange}
+                onNodeChange={onNodeChange}
                 availableVariables={availableVariables}
               />
             )}
             {selectedNode.type === 'branch' && (
               <BranchConfigForm 
                   node={selectedNode} 
-                  onConfigChange={handleConfigChange} 
+                  onConfigChange={handleConfigChange}
+                  onNodeChange={onNodeChange}
                   availableVariables={availableVariables}
               />
             )}
@@ -130,6 +118,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ nodes, edges, selectedNode, o
               <HumanInLoopConfigForm 
                   node={selectedNode}
                   onConfigChange={handleConfigChange}
+                  onNodeChange={onNodeChange}
               />
             )}
           </div>

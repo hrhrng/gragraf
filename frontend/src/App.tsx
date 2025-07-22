@@ -144,6 +144,20 @@ function App() {
       )
     );
   };
+
+  const onNodeChange = (nodeUpdates: Partial<Node<NodeData>>) => {
+    if (selectedNode) {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === selectedNode.id ? { ...node, ...nodeUpdates } : node
+        )
+      );
+      // 同时更新选中的节点状态
+      setSelectedNode((current) => 
+        current ? { ...current, ...nodeUpdates } : current
+      );
+    }
+  };
   
   const handleRunClick = () => {
     // 先关闭任何打开的节点配置面板
@@ -937,6 +951,7 @@ function App() {
         edges={edges}
         selectedNode={selectedNode} 
         onConfigChange={onConfigChange}
+        onNodeChange={onNodeChange}
       />
       
       {/* macOS Dock Style Toolbar */}
