@@ -23,7 +23,7 @@ interface SidebarProps {
 const nodeTypes = [
   { 
     type: 'httpRequest', 
-    label: 'HTTP Request', 
+    label: 'HTTP', 
     icon: GlobeIcon, 
     color: 'teal',
     iconColor: 'text-teal-300',
@@ -47,7 +47,7 @@ const nodeTypes = [
   },
   { 
     type: 'knowledgeBase', 
-    label: 'Knowledge Base', 
+    label: 'Knowledge', 
     icon: FileTextIcon, 
     color: 'purple',
     iconColor: 'text-purple-300',
@@ -71,7 +71,7 @@ const nodeTypes = [
   },
   { 
     type: 'humanInLoop', 
-    label: 'Human Approval', 
+    label: 'Human', 
     icon: CheckCircledIcon, 
     color: 'red',
     iconColor: 'text-red-300',

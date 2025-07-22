@@ -25,8 +25,8 @@ import ConfigPanel from './components/ConfigPanel';
 import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
 import { WorkflowListDialog } from './components/WorkflowListDialog';
 import { ApprovalModal } from './components/ApprovalModal';
-import { Button } from '@radix-ui/themes';
-import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon, BorderSplitIcon } from '@radix-ui/react-icons';
+import { Button, Tooltip } from '@radix-ui/themes';
+import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon, BorderSplitIcon, PlusIcon, FilePlusIcon } from '@radix-ui/react-icons';
 import { workflowApi, Workflow } from './services/workflowApi';
 
 // Map frontend node types to backend expected types
@@ -853,58 +853,66 @@ function App() {
         <div className="absolute top-4 right-4 flex flex-col gap-3">
           {/* 工作流管理按钮 */}
           <div className="flex gap-2">
-            <Button
-              size="2"
-              variant="soft"
-              onClick={handleNewWorkflow}
-              className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-            >
-              新建
-            </Button>
-            
             {/* 如果是现有工作流，显示快速保存和另存为按钮 */}
             {currentWorkflow ? (
               <>
+                <Tooltip content="另存为">
+                  <Button
+                    size="2"
+                    variant="outline"
+                    onClick={() => setSaveDialogOpen(true)}
+                    className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+                  >
+                    <FilePlusIcon className="w-4 h-4" />
+                  </Button>
+                </Tooltip>
+                <Tooltip content="保存">
+                  <Button
+                    size="2"
+                    variant="soft"
+                    onClick={handleQuickSave}
+                    disabled={saveLoading}
+                    className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+                  >
+                    <BookmarkIcon className="w-4 h-4" />
+                    {saveLoading ? '保存中...' : ''}
+                  </Button>
+                </Tooltip>
+              </>
+            ) : (
+              <Tooltip content="保存">
                 <Button
                   size="2"
                   variant="soft"
-                  onClick={handleQuickSave}
-                  disabled={saveLoading}
-                  className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-                >
-                  <BookmarkIcon className="w-4 h-4 mr-1" />
-                  {saveLoading ? '保存中...' : '保存'}
-                </Button>
-                <Button
-                  size="2"
-                  variant="outline"
                   onClick={() => setSaveDialogOpen(true)}
                   className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
                 >
-                  另存为
+                  <BookmarkIcon className="w-4 h-4" />
                 </Button>
-              </>
-            ) : (
+              </Tooltip>
+            )}
+            
+            <Tooltip content="新建工作流">
               <Button
                 size="2"
                 variant="soft"
-                onClick={() => setSaveDialogOpen(true)}
+                onClick={handleNewWorkflow}
                 className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
               >
-                <BookmarkIcon className="w-4 h-4 mr-1" />
-                保存
+                <PlusIcon className="w-4 h-4" />
               </Button>
-            )}
+            </Tooltip>
             
-            <Button
-              size="2"
-              variant="soft"
-              onClick={() => setListDialogOpen(true)}
-              className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
-            >
-              <MagnifyingGlassIcon className="w-4 h-4 mr-1" />
-              管理
-            </Button>
+            <Tooltip content="搜索工作流">
+              <Button
+                size="2"
+                variant="soft"
+                onClick={() => setListDialogOpen(true)}
+                className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm"
+              >
+                <MagnifyingGlassIcon className="w-4 h-4" />
+              </Button>
+            </Tooltip>
           </div>
 
           {/* 当前工作流信息 */}
@@ -921,17 +929,6 @@ function App() {
             </div>
           )}
 
-          {/* Workflow stats */}
-          <div className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm border border-[var(--color-border-primary)] rounded-lg px-4 py-2">
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-[var(--color-text-secondary)]">
-                Nodes: <span className="text-white font-medium">{nodes.length}</span>
-              </span>
-              <span className="text-[var(--color-text-secondary)]">
-                Connections: <span className="text-white font-medium">{edges.length}</span>
-              </span>
-            </div>
-          </div>
         </div>
       </div>
       
