@@ -59,13 +59,37 @@ const DockItem: React.FC<DockItemProps> = ({ children, onClick, label, variant =
             relative
             border border-[var(--color-border-primary)]
             ${variant === 'primary' 
-              ? 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white' 
-              : 'bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]'
+              ? 'bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)]' 
+              : 'bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)]'
             }
             ${isHovered ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' : ''}
           `}
         >
-          {children}
+          {/* Icon container with colored background - similar to sidebar nodes */}
+          <div
+            className={`
+              w-6 h-6 rounded flex items-center justify-center
+              transition-all duration-200
+              ${variant === 'primary' 
+                ? 'bg-blue-900/20 border-blue-700/30 border'
+                : 'bg-gray-700/20 border-gray-600/30 border'
+              }
+              ${isHovered && variant === 'primary' ? 'bg-blue-800/30' : ''}
+              ${isHovered && variant === 'secondary' ? 'bg-gray-600/30' : ''}
+            `}
+          >
+            <div className={`
+              ${variant === 'primary' 
+                ? 'text-blue-300' 
+                : 'text-gray-300'
+              }
+              ${isHovered && variant === 'primary' ? 'text-blue-200' : ''}
+              ${isHovered && variant === 'secondary' ? 'text-gray-200' : ''}
+              transition-colors duration-200
+            `}>
+              {children}
+            </div>
+          </div>
           
           {/* Subtle inner highlight */}
           <div
@@ -110,7 +134,7 @@ export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoL
           label="Run Workflow"
           variant="primary"
         >
-          <PlayIcon className="w-3.5 h-3.5" />
+          <PlayIcon className="w-3 h-3" />
         </DockItem>
         
         {/* Separator */}
@@ -123,7 +147,7 @@ export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoL
           label="Auto Layout"
           variant="secondary"
         >
-          <LayoutIcon className="w-3.5 h-3.5" />
+          <LayoutIcon className="w-3 h-3" />
         </DockItem>
       </div>
     </div>
