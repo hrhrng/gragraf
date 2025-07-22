@@ -1,7 +1,8 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Text, Heading, TextField, Flex, Card } from '@radix-ui/themes';
+import { Button, Text, Heading, TextField, Card, Badge } from '@radix-ui/themes';
 import { PlayIcon, Cross2Icon } from '@radix-ui/react-icons';
+import { ConfigSection } from './common/ConfigFormBase';
 
 interface RunFormProps {
   inputs: { name: string }[];
@@ -14,20 +15,26 @@ export const RunForm: React.FC<RunFormProps> = ({ inputs, onSubmit, onCancel }) 
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <Card className="bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] shadow-2xl w-full max-w-md mx-4 animate-fade-in">
+      <Card className="bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] shadow-2xl w-full max-w-lg mx-4 animate-fade-in">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                <PlayIcon className="w-5 h-5 text-white" />
+              {/* Icon container matching node style */}
+              <div className="w-8 h-8 rounded flex items-center justify-center bg-blue-900/20 border-blue-700/30 border">
+                <PlayIcon className="w-4 h-4 text-blue-300" />
               </div>
               <div>
-                <Heading size="4" className="text-white">
-                  Run Workflow
-                </Heading>
+                <div className="flex items-center gap-2 mb-1">
+                  <Heading size="4" className="text-[var(--color-text-primary)]">
+                    Run Workflow
+                  </Heading>
+                  <Badge size="1" variant="soft" color="blue">
+                    <Text size="1">Execute</Text>
+                  </Badge>
+                </div>
                 <Text size="2" className="text-[var(--color-text-secondary)]">
-                  Provide input values to start execution
+                  Configure input parameters and start execution
                 </Text>
               </div>
             </div>
@@ -35,62 +42,77 @@ export const RunForm: React.FC<RunFormProps> = ({ inputs, onSubmit, onCancel }) 
               variant="ghost"
               size="2"
               onClick={onCancel}
-              className="text-[var(--color-text-secondary)] hover:text-white"
+              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border-primary)] hover:border-[var(--color-accent)]/30"
             >
               <Cross2Icon className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* Form */}
+          {/* Form Content */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {inputs.length === 0 ? (
-              <div className="text-center py-8">
-                <Text size="2" className="text-[var(--color-text-secondary)]">
-                  No input fields configured for this workflow
-                </Text>
-              </div>
-            ) : (
-              inputs.map((input) => (
-                <div key={input.name} className="space-y-2">
-                  <Text size="2" weight="medium" className="text-white capitalize">
-                    {input.name.replace(/([A-Z])/g, ' $1').trim()}
+              <ConfigSection
+                title="No Inputs Required"
+                description="This workflow doesn't require any input parameters"
+                icon={<PlayIcon />}
+                badge={{ text: "Ready", color: "green" }}
+              >
+                <div className="text-center py-4">
+                  <Text size="2" className="text-[var(--color-text-secondary)]">
+                    Click "Run Workflow" to start execution immediately
                   </Text>
-                  <TextField.Root
-                    {...register(input.name, { required: true })}
-                    placeholder={`Enter ${input.name}`}
-                    className="w-full bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)] text-white placeholder:text-[var(--color-text-secondary)]"
-                  />
-                  {errors[input.name] && (
-                    <Text size="1" className="text-red-400">
-                      This field is required
-                    </Text>
-                  )}
                 </div>
-              ))
+              </ConfigSection>
+            ) : (
+              <ConfigSection
+                title="Input Parameters"
+                description="Provide values for the workflow input parameters"
+                icon={<PlayIcon />}
+                badge={{ text: `${inputs.length} inputs`, color: "blue" }}
+              >
+                                <div className="space-y-4">
+                  {inputs.map((input) => (
+                    <div key={input.name} className="space-y-2">
+                      <Text size="2" weight="medium" className="text-[var(--color-text-primary)] capitalize">
+                        {input.name.replace(/([A-Z])/g, ' $1').trim()}
+                      </Text>
+                      <TextField.Root
+                        {...register(input.name, { required: true })}
+                        placeholder={`Enter ${input.name.toLowerCase()}`}
+                        className="w-full bg-[var(--color-bg-tertiary)] border-[var(--color-border-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]"
+                      />
+                      {errors[input.name] && (
+                        <Text size="1" className="text-red-400">
+                          This field is required
+                        </Text>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ConfigSection>
             )}
 
             {/* Actions */}
-            <Flex gap="3" className="pt-6">
+            <div className="flex gap-3 pt-4 border-t border-[var(--color-border-primary)]">
               <Button
                 type="button"
                 variant="soft"
                 color="gray"
                 onClick={onCancel}
-                className="flex-1"
+                className="flex-1 bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 variant="soft"
-                color="blue"
-                className="flex-1"
-                disabled={inputs.length === 0}
+                className="flex-1 bg-blue-900/20 hover:bg-blue-800/30 text-blue-300 hover:text-blue-200 border border-blue-700/30 hover:border-blue-600/40"
+                disabled={inputs.length === 0 ? false : Object.keys(errors).length > 0}
               >
                 <PlayIcon className="w-4 h-4 mr-2" />
                 Run Workflow
               </Button>
-            </Flex>
+            </div>
           </form>
         </div>
       </Card>
