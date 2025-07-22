@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from '@radix-ui/themes';
 import { PlayIcon, BorderSplitIcon } from '@radix-ui/react-icons';
 
 interface DockToolbarProps {
@@ -26,98 +25,61 @@ const DockItem: React.FC<DockItemProps> = ({ children, onClick, label, variant =
       {/* Tooltip */}
       <div 
         className={`
-          absolute -top-14 left-1/2 transform -translate-x-1/2 
-          bg-gray-800/95 text-white text-xs px-3 py-1.5 rounded-md 
+          absolute -top-12 left-1/2 transform -translate-x-1/2 
+          bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]
+          text-[var(--color-text-primary)] text-xs px-3 py-1.5 rounded-lg 
           backdrop-blur-sm whitespace-nowrap transition-all duration-200
           ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
           pointer-events-none
         `}
         style={{
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          fontFamily: 'Inter, Arial, sans-serif',
+          boxShadow: 'var(--shadow-lg)',
         }}
       >
         {label}
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-800/95"></div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-[var(--color-bg-secondary)]"></div>
       </div>
       
       {/* Dock Item */}
       <div
         className={`
           relative overflow-hidden
-          transition-all duration-500 ease-out
-          ${isHovered ? 'scale-150 -translate-y-2' : 'scale-100'}
+          transition-all duration-200 ease-out
+          ${isHovered ? 'scale-110 -translate-y-0.5' : 'scale-100'}
           cursor-pointer
-          transform-gpu
         `}
         onClick={onClick}
-        style={{
-          transformOrigin: 'bottom center',
-        }}
       >
         <div
           className={`
-            w-12 h-12 rounded-2xl
+            w-10 h-10 rounded-lg
             flex items-center justify-center
-            transition-all duration-300
+            transition-all duration-200
             relative
+            border border-[var(--color-border-primary)]
             ${variant === 'primary' 
-              ? 'text-white' 
-              : 'text-gray-700 dark:text-gray-200'
+              ? 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white' 
+              : 'bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]'
             }
-            ${isHovered ? 'shadow-2xl' : 'shadow-lg'}
+            ${isHovered ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20' : ''}
           `}
-          style={{
-            background: variant === 'primary' 
-              ? `linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)`
-              : `linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)`,
-            boxShadow: variant === 'primary'
-              ? `
-                0 4px 20px rgba(59,130,246,0.3),
-                0 1px 3px rgba(0,0,0,0.2),
-                inset 0 1px 1px rgba(255,255,255,0.2)
-              `
-              : `
-                0 4px 20px rgba(0,0,0,0.1),
-                0 1px 3px rgba(0,0,0,0.1),
-                inset 0 1px 1px rgba(255,255,255,0.2),
-                inset 0 -1px 1px rgba(0,0,0,0.1)
-              `,
-            border: '1px solid rgba(255,255,255,0.15)',
-          }}
         >
           {children}
           
-          {/* Inner glow effect */}
+          {/* Subtle inner highlight */}
           <div
             className={`
-              absolute inset-0 rounded-2xl
+              absolute inset-0 rounded-lg
               pointer-events-none
-              transition-opacity duration-300
+              transition-opacity duration-200
               ${isHovered ? 'opacity-100' : 'opacity-0'}
             `}
             style={{
-              background: variant === 'primary'
-                ? 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 70%)'
-                : 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 70%)',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)',
             }}
           />
         </div>
-        
-        {/* Reflection at bottom */}
-        <div
-          className={`
-            absolute top-full left-0 right-0 h-full rounded-b-2xl
-            pointer-events-none transition-opacity duration-300
-            ${isHovered ? 'opacity-40' : 'opacity-20'}
-          `}
-          style={{
-            background: variant === 'primary' 
-              ? 'linear-gradient(to bottom, rgba(59,130,246,0.2) 0%, transparent 60%)'
-              : 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, transparent 60%)',
-            transform: 'scaleY(-1)',
-            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, transparent 50%)',
-          }}
-        />
       </div>
     </div>
   );
@@ -125,67 +87,35 @@ const DockItem: React.FC<DockItemProps> = ({ children, onClick, label, variant =
 
 export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoLayout }) => {
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
       {/* Dock Container */}
       <div
         className="
-          flex items-end gap-1 px-4 py-3
-          backdrop-blur-xl
-          rounded-3xl
+          flex items-center gap-2 px-4 py-3
+          bg-[var(--color-bg-secondary)]
+          border border-[var(--color-border-primary)]
+          rounded-xl
           relative
-          transition-all duration-300 ease-out
-          hover:scale-105
+          transition-all duration-200 ease-out
+          hover:shadow-lg hover:shadow-violet-500/10
+          animate-fade-in
         "
         style={{
-          background: `
-            linear-gradient(135deg, 
-              rgba(255,255,255,0.12) 0%, 
-              rgba(255,255,255,0.06) 50%, 
-              rgba(255,255,255,0.08) 100%
-            )
-          `,
-          boxShadow: `
-            0 8px 32px rgba(0,0,0,0.12),
-            0 2px 8px rgba(0,0,0,0.08),
-            inset 0 1px 1px rgba(255,255,255,0.25),
-            inset 0 -1px 1px rgba(0,0,0,0.05)
-          `,
-          border: '1px solid rgba(255,255,255,0.18)',
+          boxShadow: 'var(--shadow-lg)',
         }}
       >
-        {/* Top highlight */}
-        <div 
-          className="absolute top-0 left-2 right-2 h-px rounded-full opacity-50"
-          style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)'
-          }}
-        />
-        
-        {/* Dock reflection at bottom */}
-        <div 
-          className="absolute top-full left-0 right-0 h-full rounded-b-3xl pointer-events-none"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.04) 0%, transparent 50%)',
-            transform: 'scaleY(-1)',
-            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%)',
-          }}
-        />
-        
         {/* Dock Items */}
         <DockItem
           onClick={onRunWorkflow}
           label="Run Workflow"
           variant="primary"
         >
-          <PlayIcon className="w-6 h-6" />
+          <PlayIcon className="w-5 h-5" />
         </DockItem>
         
         {/* Separator */}
         <div 
-          className="w-0.5 h-8 mx-2 rounded-full opacity-40"
-          style={{
-            background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)'
-          }}
+          className="w-px h-6 mx-1 bg-[var(--color-border-primary)] rounded-full"
         />
         
         <DockItem
@@ -193,7 +123,7 @@ export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoL
           label="Auto Layout"
           variant="secondary"
         >
-          <BorderSplitIcon className="w-6 h-6" />
+          <BorderSplitIcon className="w-5 h-5" />
         </DockItem>
       </div>
     </div>
