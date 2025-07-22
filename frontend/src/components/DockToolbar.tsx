@@ -110,7 +110,7 @@ export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoL
           label="Run Workflow"
           variant="primary"
         >
-          <PlayIcon className="w-4 h-4" />
+          <PlayIcon className="w-3.5 h-3.5" />
         </DockItem>
         
         {/* Separator */}
@@ -123,7 +123,7 @@ export const DockToolbar: React.FC<DockToolbarProps> = ({ onRunWorkflow, onAutoL
           label="Auto Layout"
           variant="secondary"
         >
-          <LayoutIcon className="w-4 h-4" />
+          <LayoutIcon className="w-3.5 h-3.5" />
         </DockItem>
       </div>
     </div>
