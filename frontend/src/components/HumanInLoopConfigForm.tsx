@@ -65,7 +65,7 @@ export const HumanInLoopConfigForm: React.FC<HumanInLoopConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      nodeLabel={node.data.label || 'Human Approval'}
+      nodeLabel={node.data.label || node.id}
       nodeType="humanInLoop"
       onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       showVariables={false}

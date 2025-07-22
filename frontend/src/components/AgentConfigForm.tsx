@@ -101,7 +101,7 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      nodeLabel={node.data.label || 'Agent Node'}
+      nodeLabel={node.data.label || node.id}
       nodeType="agent"
       onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}

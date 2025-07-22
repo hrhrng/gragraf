@@ -90,7 +90,7 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
 
   return (
     <ConfigFormBase
-      nodeLabel={node.data.label || 'Knowledge Base'}
+      nodeLabel={node.data.label || node.id}
       nodeType="knowledgeBase"
       onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}

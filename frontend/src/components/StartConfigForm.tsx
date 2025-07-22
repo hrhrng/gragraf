@@ -66,7 +66,7 @@ export const StartConfigForm: React.FC<StartConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      nodeLabel={node.data.label || 'Start Node'}
+      nodeLabel={node.data.label || node.id}
       nodeType="start"
       onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       showVariables={false}

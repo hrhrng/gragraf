@@ -118,7 +118,7 @@ export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      nodeLabel={node.data.label || 'Branch Node'}
+      nodeLabel={node.data.label || node.id}
       nodeType="branch"
       onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}

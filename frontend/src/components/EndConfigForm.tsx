@@ -75,7 +75,7 @@ export const EndConfigForm: React.FC<EndConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      nodeLabel={node.data.label || 'End Node'}
+      nodeLabel={node.data.label || node.id}
       nodeType="end"
       onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}

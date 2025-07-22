@@ -121,7 +121,7 @@ function App() {
       }
     }
     const newNode: Node<NodeData> = {
-      id: `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `${type}_${nodes.length + 1}`,
       type,
       position,
       data: { 
@@ -147,15 +147,56 @@ function App() {
 
   const onNodeChange = (nodeUpdates: Partial<Node<NodeData>>) => {
     if (selectedNode) {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === selectedNode.id ? { ...node, ...nodeUpdates } : node
-        )
-      );
-      // 同时更新选中的节点状态
-      setSelectedNode((current) => 
-        current ? { ...current, ...nodeUpdates } : current
-      );
+      // 如果更新包含data.label，则同时更新节点ID
+      if (nodeUpdates.data?.label) {
+        const newLabel = nodeUpdates.data.label;
+        const nodeType = selectedNode.type;
+        
+        // 生成新的ID，基于类型和标签
+        const sanitizedLabel = newLabel.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const newId = `${nodeType}_${sanitizedLabel}`;
+        
+        // 检查ID是否已存在，如果存在则添加数字后缀
+        let finalId = newId;
+        let counter = 1;
+        // eslint-disable-next-line no-loop-func
+        while (nodes.some(n => n.id === finalId && n.id !== selectedNode.id)) {
+          finalId = `${newId}_${counter}`;
+          counter++;
+        }
+        
+        const updatedNode = { ...selectedNode, ...nodeUpdates, id: finalId };
+        
+        // 更新节点
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === selectedNode.id ? updatedNode : node
+          )
+        );
+        
+        // 更新边的连接，将旧ID替换为新ID
+        setEdges((eds) =>
+          eds.map((edge) => ({
+            ...edge,
+            source: edge.source === selectedNode.id ? finalId : edge.source,
+            target: edge.target === selectedNode.id ? finalId : edge.target,
+          }))
+        );
+        
+        // 更新选中的节点状态
+        setSelectedNode(updatedNode);
+      } else {
+        // 普通更新，不涉及ID变更
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === selectedNode.id ? { ...node, ...nodeUpdates } : node
+          )
+        );
+        
+        setSelectedNode((current) => 
+          current ? { ...current, ...nodeUpdates } : current
+        );
+      }
     }
   };
   

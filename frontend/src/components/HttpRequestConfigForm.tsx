@@ -130,7 +130,7 @@ export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({
 
   return (
     <ConfigFormBase
-      nodeLabel={node.data.label || 'HTTP Request'}
+      nodeLabel={node.data.label || node.id}
       nodeType="httpRequest"
       onNodeLabelChange={(label) => onNodeChange({ data: { ...node.data, label } })}
       availableVariables={availableVariables}
