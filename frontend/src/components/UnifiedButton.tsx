@@ -33,7 +33,7 @@ export const UnifiedButton: React.FC<UnifiedButtonProps> = ({
           onClick={onClick}
           disabled={disabled}
           className={`
-            w-7 h-7 rounded flex items-center justify-center
+            w-8 h-8 rounded flex items-center justify-center
             transition-all duration-200
             border
             disabled:opacity-50 disabled:cursor-not-allowed
