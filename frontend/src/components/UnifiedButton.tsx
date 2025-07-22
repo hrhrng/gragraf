@@ -33,32 +33,20 @@ export const UnifiedButton: React.FC<UnifiedButtonProps> = ({
           onClick={onClick}
           disabled={disabled}
           className={`
-            h-8 px-3 rounded-lg flex items-center justify-center
+            w-7 h-7 rounded flex items-center justify-center
             transition-all duration-200
-            border border-[var(--color-border-primary)]
+            border
             disabled:opacity-50 disabled:cursor-not-allowed
             ${variant === 'primary' 
-              ? 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white' 
-              : 'bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]'
+              ? 'bg-blue-900/20 border-blue-700/30 text-blue-300'
+              : 'bg-gray-700/20 border-gray-600/30 text-gray-300'
             }
-            ${isHovered && !disabled ? 'border-[var(--color-accent)] shadow-lg shadow-violet-500/20 scale-110 -translate-y-0.5' : ''}
+            ${isHovered && !disabled && variant === 'primary' ? 'bg-blue-800/30 text-blue-200 border-blue-600/40 scale-110 -translate-y-0.5' : ''}
+            ${isHovered && !disabled && variant === 'secondary' ? 'bg-gray-600/30 text-gray-200 border-gray-500/40 scale-110 -translate-y-0.5' : ''}
             ${className}
           `}
         >
           {children}
-          
-          {/* Subtle inner highlight */}
-          <div
-            className={`
-              absolute inset-0 rounded-lg
-              pointer-events-none
-              transition-opacity duration-200
-              ${isHovered ? 'opacity-100' : 'opacity-0'}
-            `}
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)',
-            }}
-          />
         </button>
       </div>
     </Tooltip>

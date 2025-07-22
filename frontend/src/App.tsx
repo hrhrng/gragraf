@@ -862,7 +862,7 @@ function App() {
                   onClick={() => setSaveDialogOpen(true)}
                   variant="secondary"
                 >
-                  <FilePlusIcon className="w-4 h-4" />
+                  <FilePlusIcon className="w-3 h-3" />
                 </UnifiedButton>
                 <UnifiedButton
                   tooltip={saveLoading ? '保存中...' : '保存'}
@@ -870,7 +870,7 @@ function App() {
                   disabled={saveLoading}
                   variant="primary"
                 >
-                  <BookmarkIcon className="w-4 h-4" />
+                  <BookmarkIcon className="w-3 h-3" />
                 </UnifiedButton>
               </>
             ) : (
@@ -879,7 +879,7 @@ function App() {
                 onClick={() => setSaveDialogOpen(true)}
                 variant="primary"
               >
-                <BookmarkIcon className="w-4 h-4" />
+                <BookmarkIcon className="w-3 h-3" />
               </UnifiedButton>
             )}
             
@@ -888,7 +888,7 @@ function App() {
               onClick={handleNewWorkflow}
               variant="secondary"
             >
-              <PlusIcon className="w-4 h-4" />
+              <PlusIcon className="w-3 h-3" />
             </UnifiedButton>
             
             <UnifiedButton
@@ -896,7 +896,7 @@ function App() {
               onClick={() => setListDialogOpen(true)}
               variant="secondary"
             >
-              <MagnifyingGlassIcon className="w-4 h-4" />
+              <MagnifyingGlassIcon className="w-3 h-3" />
             </UnifiedButton>
           </div>
 
