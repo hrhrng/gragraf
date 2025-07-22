@@ -28,6 +28,7 @@ import { ApprovalModal } from './components/ApprovalModal';
 import { Button, Tooltip } from '@radix-ui/themes';
 import { PlayIcon, BookmarkIcon, MagnifyingGlassIcon, Cross1Icon, BorderSplitIcon, PlusIcon, FilePlusIcon } from '@radix-ui/react-icons';
 import { workflowApi, Workflow } from './services/workflowApi';
+import { DockToolbar } from './components/DockToolbar';
 
 // Map frontend node types to backend expected types
 const mapNodeTypeToBackend = (frontendType: string): string => {
@@ -954,29 +955,11 @@ function App() {
         onConfigChange={onConfigChange}
       />
       
-      {/* Bottom Run Button + Auto Layout Icon */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4">
-        <Button 
-          onClick={handleRunClick}
-          size="3"
-          variant="soft"
-          color="blue"
-          className="px-8 font-medium shadow-xl hover:shadow-2xl transition-all duration-200"
-        >
-          <PlayIcon className="w-4 h-4 mr-2" />
-          Run Workflow
-        </Button>
-        <Button
-          onClick={autoLayout}
-          size="3"
-          variant="ghost"
-          color="gray"
-          aria-label="自动整理"
-          className="rounded-full flex items-center justify-center border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-tertiary)]"
-        >
-          <BorderSplitIcon className="w-6 h-6" />
-        </Button>
-      </div>
+      {/* macOS Dock Style Toolbar */}
+      <DockToolbar 
+        onRunWorkflow={handleRunClick}
+        onAutoLayout={autoLayout}
+      />
 
       {/* 工作流存储对话框 */}
       <SaveWorkflowDialog
