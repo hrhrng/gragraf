@@ -8,7 +8,8 @@ import {
   BorderSplitIcon,
   FileTextIcon,
   QuestionMarkIcon,
-  CheckCircledIcon
+  CheckCircledIcon,
+  MagnifyingGlassIcon
 } from '@radix-ui/react-icons';
 import { NodeData } from './types';
 import { StartNode } from './components/StartNode';
@@ -73,9 +74,17 @@ const nodeStyleConfig: Record<string, NodeStyleConfig> = {
 };
 
 const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
-  const getNodeStyle = (label: string): NodeStyleConfig => {
-    const normalizedLabel = label.toLowerCase();
-    return nodeStyleConfig[normalizedLabel] || {
+  const getNodeStyle = (nodeType: string): NodeStyleConfig => {
+    // 基于节点类型而不是标签名称来确定样式
+    const typeToStyleMap: Record<string, NodeStyleConfig> = {
+      'httpRequest': nodeStyleConfig['http request'],
+      'agent': nodeStyleConfig['agent'],
+      'knowledgeBase': nodeStyleConfig['knowledge base'],
+      'branch': nodeStyleConfig['branch'],
+      'humanInLoop': nodeStyleConfig['human approval'],
+    };
+    
+    return typeToStyleMap[nodeType] || {
       icon: QuestionMarkIcon,
       iconColor: 'text-gray-300',
       bgColor: 'bg-gray-900/20',
@@ -84,7 +93,8 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
     };
   };
 
-  const style = getNodeStyle(data.label);
+  // 从节点类型获取样式，而不是从标签名称
+  const style = getNodeStyle(data.nodeType || 'unknown');
   const IconComponent = style.icon;
 
   return (
@@ -95,41 +105,23 @@ const BaseNode = ({ data, selected }: NodeProps<NodeData>) => {
         className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
       
-      <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
+      <div className={`w-44 bg-[var(--color-bg-secondary)] border-2 rounded-lg ${
         selected 
           ? 'border-white/30 shadow-lg shadow-black/20' 
           : 'border-[var(--color-border-primary)] hover:border-white/20'
-      } transition-all duration-200`}>
-        <div className="p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`}>
-              <IconComponent className={`w-4 h-4 ${style.iconColor}`} />
+      } transition-all duration-200`}
+        style={{ borderRadius: '8px' }}>
+        <div className="py-5 px-4">
+          <div className="flex items-center gap-4">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`} style={{ minWidth: '32px', minHeight: '32px' }}>
+              <IconComponent className={`w-5 h-5 ${style.iconColor}`} />
             </div>
-            <Text size="3" weight="medium" className="text-white flex-1" style={{ fontFamily: 'inherit' }}>
+            <Text size="3" weight="medium" className="text-white flex-1 truncate" style={{ fontFamily: 'inherit' }}>
               {data.label}
             </Text>
           </div>
-          
-          {data.config && Object.keys(data.config).length > 0 && (
-            <div className="space-y-2">
-              {Object.entries(data.config).slice(0, 2).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <Text size="1" className="text-white/60 capitalize" style={{ fontFamily: 'inherit' }}>
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                  </Text>
-                  <Badge size="1" variant="soft" color={style.badgeColor}>
-                    <Text size="1" style={{ fontFamily: 'inherit' }}>
-                      {typeof value === 'string' ? value.slice(0, 10) + (value.length > 10 ? '...' : '') : 
-                       typeof value === 'object' ? 'Object' : 
-                       String(value)}
-                    </Text>
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
-      </Card>
+      </div>
       
       <Handle 
         type="source" 
@@ -145,12 +137,41 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
   const hasElse = data.config?.hasElse || false;
   const branchCount = conditions.length + (hasElse ? 1 : 0);
 
-  // 行高（px），需与下方内容区每行高度一致
-  const rowHeight = 32;
-  // 内容区顶部padding
-  const contentPaddingTop = 16;
+  // 每个分支预览的高度
+  const branchPreviewHeight = 32;
+  // 基础内容高度（图标+文字区域）
+  const baseContentHeight = 48; // 标题区域高度
+  // 计算所需的总高度 - 如果没有条件，使用标准高度
+  const totalHeight = branchCount > 0 
+    ? baseContentHeight + (branchCount * branchPreviewHeight) + 16 
+    : 72; // 标准高度，与BaseNode一致
 
   const style = nodeStyleConfig['branch'];
+
+  // 生成条件预览文本
+  const getConditionPreview = (condition: any, index: number) => {
+    // 检查是否有预生成的条件字符串（来自BranchConfigForm）
+    if (condition.condition && condition.condition !== '请配置完整条件') {
+      return condition.condition;
+    }
+    
+    // 兼容两种数据格式：Condition接口和ConditionData接口
+    const field = condition.field || condition.variable;
+    const operator = condition.operator || '==';
+    const value = condition.value || '';
+    
+    // 即使没有完整配置，也显示条件表达式格式
+    if (!field) {
+      return `{{变量}} ${operator} ${value || '值'}`;
+    }
+    
+    if (!value) {
+      return `{{${field}}} ${operator} 值`;
+    }
+    
+    // 显示生成的条件表达式格式
+    return `{{${field}}} ${operator} ${value}`;
+  };
 
   return (
     <div className="relative transition-all duration-200">
@@ -159,59 +180,75 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
         position={Position.Left}
         className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
-      <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
+      <div className={`w-44 bg-[var(--color-bg-secondary)] border-2 rounded-lg ${
         selected 
           ? 'border-white/30 shadow-lg shadow-black/20' 
           : 'border-[var(--color-border-primary)] hover:border-white/20'
-      } transition-all duration-200`}>
-        <div className="p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`}>
-              <BorderSplitIcon className={`w-4 h-4 ${style.iconColor}`} />
+      } transition-all duration-200`}
+        style={{ 
+          borderRadius: '8px',
+          minHeight: `${totalHeight}px`
+        }}>
+        <div className="py-5 px-4" style={{ 
+          minHeight: `${totalHeight}px`
+        }}>
+          {/* 标题区域 */}
+          <div className="flex items-center gap-4">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`} style={{ minWidth: '32px', minHeight: '32px' }}>
+              <BorderSplitIcon className={`w-5 h-5 ${style.iconColor}`} />
             </div>
-            <Text size="3" weight="medium" className="text-white flex-1" style={{ fontFamily: 'inherit' }}>
+            <Text size="3" weight="medium" className="text-white flex-1 truncate" style={{ fontFamily: 'inherit' }}>
               {data.label}
             </Text>
           </div>
-          
-          <div className="space-y-1">
-            {conditions.map((condition: Condition, index: number) => (
-              <div key={index} className="flex items-center justify-between">
-                <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
-                  Condition {index + 1}
-                </Text>
-                <Badge size="1" variant="soft" color={style.badgeColor}>
-                  <Text size="1" style={{ fontFamily: 'inherit' }}>
-                    {condition.field || 'Field'} {condition.operator || '='} {String(condition.value).slice(0, 8)}
+
+          {/* 分支预览区域 - 只在有条件时显示 */}
+          {branchCount > 0 && (
+            <div className="mt-3 space-y-1">
+              {/* 条件分支预览 */}
+              {conditions.map((condition, index) => (
+                <div key={index} className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded px-2 py-1 border border-[var(--color-border-primary)]">
+                  <Text size="1" className="text-[var(--color-text-primary)] font-mono truncate" style={{ maxWidth: '100%' }}>
+                    {getConditionPreview(condition, index)}
                   </Text>
-                </Badge>
-              </div>
-            ))}
-            {hasElse && (
-              <div className="flex items-center justify-between">
-                <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
-                  Else Branch
-                </Text>
-                <Badge size="1" variant="soft" color="gray">
-                  <Text size="1" style={{ fontFamily: 'inherit' }}>Default</Text>
-                </Badge>
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+              
+              {/* Else分支预览 */}
+              {hasElse && (
+                <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded px-2 py-1 border border-[var(--color-border-primary)]">
+                  <Text size="1" className="text-[var(--color-text-primary)]">
+                    否则
+                  </Text>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </Card>
+      </div>
       
       {/* 动态生成右侧 Handle */}
       {Array.from({ length: branchCount }, (_, index) => {
-        const yOffset = contentPaddingTop + (index * rowHeight);
+        // 如果没有条件，不生成Handle
+        if (branchCount === 0) return null;
+        
+        // 计算Handle位置：标题区域高度 + 条件预览区域的位置
+        const titleHeight = 72; // 标题区域高度
+        const conditionStartY = titleHeight + 12; // 标题区域 + 间距
+        const startY = conditionStartY + (index * 29.9); // 每个条件框高度32px，间距4px
+        const centerY = startY - 3; // startY + 32/2 - 4 (往上偏移4px)
+        
+        const isElseBranch = hasElse && index === conditions.length;
+        const handleId = isElseBranch ? 'else' : `branch-${index}`;
+        
         return (
           <Handle 
             key={index}
             type="source" 
             position={Position.Right}
-            id={index === branchCount - 1 && hasElse ? 'else' : `condition-${index}`}
+            id={handleId}
             className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
-            style={{ top: yOffset + 'px' }}
+            style={{ top: centerY + 'px' }}
           />
         );
       })}
@@ -220,9 +257,14 @@ const BranchNode = ({ data, selected }: NodeProps<NodeData>) => {
 };
 
 const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
-  const config = data.config || {};
   const style = nodeStyleConfig['human approval'];
   
+  // 计算所需的总高度 - 固定为2个分支
+  const branchCount = 2;
+  const branchPreviewHeight = 32;
+  const baseContentHeight = 48; // 标题区域高度
+  const totalHeight = baseContentHeight + (branchCount * branchPreviewHeight) + 16;
+
   return (
     <div className="relative transition-all duration-200">
       <Handle 
@@ -231,51 +273,68 @@ const HumanInLoopNode = ({ data, selected }: NodeProps<NodeData>) => {
         className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
       />
       
-      <Card className={`w-56 bg-[var(--color-bg-secondary)] border-2 ${
+      <div className={`w-44 bg-[var(--color-bg-secondary)] border-2 rounded-lg ${
         selected 
           ? 'border-white/30 shadow-lg shadow-black/20' 
           : 'border-[var(--color-border-primary)] hover:border-white/20'
-      } transition-all duration-200`}>
-        <div className="p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`}>
-              <CheckCircledIcon className={`w-4 h-4 ${style.iconColor}`} />
+      } transition-all duration-200`}
+        style={{ 
+          borderRadius: '8px',
+          minHeight: `${totalHeight}px`
+        }}>
+        <div className="py-5 px-4" style={{ 
+          minHeight: `${totalHeight}px`
+        }}>
+          {/* 标题区域 */}
+          <div className="flex items-center gap-4">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bgColor} border ${style.borderColor}`} style={{ minWidth: '32px', minHeight: '32px' }}>
+              <CheckCircledIcon className={`w-5 h-5 ${style.iconColor}`} />
             </div>
-            <Text size="3" weight="medium" className="text-white flex-1" style={{ fontFamily: 'inherit' }}>
+            <Text size="3" weight="medium" className="text-white flex-1 truncate" style={{ fontFamily: 'inherit' }}>
               {data.label}
             </Text>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
-                Message
+
+          {/* 分支预览区域 */}
+          <div className="mt-3 space-y-1">
+            {/* Approve分支预览 */}
+            <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded px-2 py-1 border border-[var(--color-border-primary)]">
+              <Text size="1" className="text-green-300 font-mono truncate" style={{ maxWidth: '100%' }}>
+                Approve
               </Text>
-              <Badge size="1" variant="soft" color={style.badgeColor}>
-                <Text size="1" style={{ fontFamily: 'inherit' }}>
-                  {config.message?.slice(0, 10) + (config.message?.length > 10 ? '...' : '') || 'Pending'}
-                </Text>
-              </Badge>
             </div>
-            <div className="flex items-center justify-between">
-              <Text size="1" className="text-white/60" style={{ fontFamily: 'inherit' }}>
-                Timeout
+            
+            {/* Reject分支预览 */}
+            <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded px-2 py-1 border border-[var(--color-border-primary)]">
+              <Text size="1" className="text-red-300 font-mono truncate" style={{ maxWidth: '100%' }}>
+                Reject
               </Text>
-              <Badge size="1" variant="soft" color="gray">
-                <Text size="1" style={{ fontFamily: 'inherit' }}>
-                  {config.timeout || 'None'}
-                </Text>
-              </Badge>
             </div>
           </div>
         </div>
-      </Card>
+      </div>
       
-      <Handle 
-        type="source" 
-        position={Position.Right}
-        className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
-      />
+      {/* 动态生成右侧 Handle - 与Branch节点相同的逻辑 */}
+      {Array.from({ length: branchCount }, (_, index) => {
+        // 计算Handle位置：标题区域高度 + 分支预览区域的位置
+        const titleHeight = 72; // 标题区域高度
+        const conditionStartY = titleHeight + 12; // 标题区域 + 间距
+        const startY = conditionStartY + (index * 29.9); // 每个分支框高度32px，间距4px
+        const centerY = startY - 3; // startY + 32/2 - 4 (往上偏移4px)
+        
+        const handleId = index === 0 ? 'approve' : 'reject';
+        
+        return (
+          <Handle 
+            key={index}
+            type="source" 
+            position={Position.Right}
+            id={handleId}
+            className="w-3 h-3 border-2 border-white/50 bg-[var(--color-bg-secondary)]"
+            style={{ top: centerY + 'px' }}
+          />
+        );
+      })}
     </div>
   );
 };
@@ -294,13 +353,13 @@ export const initialNodes: Node<NodeData>[] = [
   {
     id: 'start_1',
     type: 'start',
-    data: { label: 'Start', config: { inputs: [{ name: 'input' }] } },
+    data: { label: 'Start', nodeType: 'start', config: { inputs: [{ name: 'input' }] } },
     position: { x: 100, y: 200 },
   },
   {
     id: 'end_1',
     type: 'end',
-    data: { label: 'End', config: {} },
+    data: { label: 'End', nodeType: 'end', config: {} },
     position: { x: 800, y: 200 },
   },
 ]; 

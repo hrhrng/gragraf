@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
         {
             "name": "Python Debugger: Python File",
             "type": "debugpy",
@@ -12,7 +11,23 @@
             "program": "${file}"
         },
         {
-            "name": "Debug Uvicorn (no reload)",
+          "name": "Uvicorn",
+          "type": "debugpy",
+          "request": "launch",
+          "module": "uvicorn",
+          "args": [
+            "src.gragraf.server:app",
+            "--host", "127.0.0.1",
+            "--port", "8000",
+            "--reload"
+          ],
+          "jinja": true,
+          "env": {
+            "PYTHONPATH": "${workspaceFolder}"
+          }
+        },
+        {
+            "name": "Debug Uvicorn",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
@@ -20,12 +35,14 @@
               "src.gragraf.server:app",
               "--host", "127.0.0.1",
               "--port", "8000",
-              "--log-level", "debug"
+              "--log-level", "debug",
+              "--reload"
             ],
             "jinja": true,
             "env": {
               "PYTHONPATH": "${workspaceFolder}"
-            }
+            },
+            "justMyCode": false
           }
     ]
 }

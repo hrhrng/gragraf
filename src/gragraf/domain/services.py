@@ -72,8 +72,8 @@ class WorkflowDomainService:
         if workflow is None:
             return False
         
-        # Business rule: Can only delete inactive or draft workflows
-        return workflow.status in [WorkflowStatus.DRAFT, WorkflowStatus.INACTIVE]
+        # Allow deletion of any workflow status
+        return True
     
     async def get_workflow_health(self, workflow_id: WorkflowId) -> dict:
         """

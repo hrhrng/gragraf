@@ -7,7 +7,7 @@ interface ApprovalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   interruptInfo: HumanInputRequired | null;
-  onDecision: (decision: 'approved' | 'rejected', comment: string) => void;
+  onDecision: (decision: 'approve' | 'reject', comment: string) => void;
 }
 
 export const ApprovalModal: React.FC<ApprovalModalProps> = ({
@@ -30,7 +30,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
     
     setIsSubmitting(true);
     try {
-      await onDecision('approved', comment);
+      await onDecision('approve', comment);
       setComment('');
       onOpenChange(false);
     } finally {
@@ -46,7 +46,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
     
     setIsSubmitting(true);
     try {
-      await onDecision('rejected', comment);
+      await onDecision('reject', comment);
       setComment('');
       onOpenChange(false);
     } finally {

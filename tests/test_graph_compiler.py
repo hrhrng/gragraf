@@ -88,7 +88,7 @@ def test_conditional_graph_execution(mock_http_execute, mock_branch_execute):
     compiler = GraphCompiler(branching_dsl)
     app = compiler.compile()
 
-    final_state = app.invoke({"x": 10})
+    final_state = app.invoke({"x": 10}, config={"configurable": {"thread_id": "test_conditional"}})
 
     # Verify that the branch node was called
     mock_branch_execute.assert_any_call({"x": 10})

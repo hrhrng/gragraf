@@ -4,7 +4,7 @@ import { Node, Edge } from 'reactflow';
 import { Button, Text, Heading, TextField, Flex } from '@radix-ui/themes';
 import { PlayIcon } from '@radix-ui/react-icons';
 import { NodeData } from '../types';
-import ConfigPanel from './ConfigPanel';
+import { RunForm } from './RunForm';
 import { WorkflowResult } from './WorkflowResult';
 
 interface RightPanelProps {

@@ -76,7 +76,6 @@ export const StartConfigForm: React.FC<StartConfigFormProps> = ({
         title="工作流输入参数"
         description="定义工作流启动时需要的输入参数"
         icon={<ReaderIcon />}
-        badge={{ text: `${fields.length} 个输入`, color: 'green' }}
       >
         <ConfigDynamicListField
           label="输入参数"
@@ -88,7 +87,7 @@ export const StartConfigForm: React.FC<StartConfigFormProps> = ({
           renderItem={(field, index) => (
             <ConfigTextField
               label={`参数 ${index + 1}`}
-              value={field.name}
+              value={watch(`inputs.${index}.name`) || ''}
               onChange={(value) => setValue(`inputs.${index}.name`, value)}
               placeholder="输入参数名称（如：user_query, document_url）"
               required

@@ -41,7 +41,7 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
   const { setValue, watch, reset } = useForm<FormData>({
     defaultValues: {
       urls: node.data.config?.urls?.join('\n') || '',
-      documents: node.data.config?.documents?.join('\n') || '',
+      documents: node.data.config?.documents?.join('---') || '',
       query: node.data.config?.query || '',
       top_k: node.data.config?.top_k || 4,
       output_name: node.data.config?.output_name || '',
@@ -53,7 +53,7 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
   useEffect(() => {
     reset({
       urls: node.data.config?.urls?.join('\n') || '',
-      documents: node.data.config?.documents?.join('\n') || '',
+      documents: node.data.config?.documents?.join('---') || '',
       query: node.data.config?.query || '',
       top_k: node.data.config?.top_k || 4,
       output_name: node.data.config?.output_name || '',
@@ -66,7 +66,7 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
     const subscription = watch((data) => {
       const config = {
         urls: data.urls ? data.urls.split('\n').filter((url: string) => url.trim()) : [],
-        documents: data.documents ? data.documents.split('\n').filter((doc: string) => doc.trim()) : [],
+        documents: data.documents ? data.documents.split('---').filter((doc: string) => doc.trim()) : [],
         query: data.query,
         top_k: data.top_k,
         output_name: data.output_name,
@@ -81,12 +81,12 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
 
   const handleVariableSelect = (field: keyof FormData, variable: string) => {
     const currentValue = watch(field) as string;
-    const newValue = currentValue + `{{${variable}}}`;
+    const newValue = currentValue + variable;
     setValue(field, newValue);
   };
 
   const urlCount = watch('urls') ? watch('urls').split('\n').filter(url => url.trim()).length : 0;
-  const documentCount = watch('documents') ? watch('documents').split('\n').filter(doc => doc.trim()).length : 0;
+  const documentCount = watch('documents') ? watch('documents').split('---').filter(doc => doc.trim()).length : 0;
 
   return (
     <ConfigFormBase
@@ -100,7 +100,6 @@ export const KnowledgeBaseConfigForm: React.FC<KnowledgeBaseConfigFormProps> = (
         title="数据源"
         description="配置知识库的数据来源"
         icon={<GlobeIcon />}
-        badge={{ text: `${urlCount + documentCount} 个源`, color: 'blue' }}
       >
         <ConfigTextAreaField
           label="文档URLs"

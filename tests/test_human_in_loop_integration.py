@@ -205,7 +205,7 @@ class TestHumanInLoopIntegration:
         # Simulate human approval
         human_input = {
             "hilp_1_human_input": {
-                "decision": "approved",
+                "decision": "approve",
                 "comment": "Looks good to proceed"
             }
         }
@@ -219,7 +219,7 @@ class TestHumanInLoopIntegration:
         # Check nested structure from LangGraph
         hilp_data = final_state.get("hilp_1", {})
         assert "hilp_1_decision" in hilp_data
-        assert hilp_data["hilp_1_decision"] == "approved"
+        assert hilp_data["hilp_1_decision"] == "approve"
         assert "hilp_1_comment" in hilp_data
         assert hilp_data["hilp_1_comment"] == "Looks good to proceed"
 

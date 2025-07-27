@@ -201,29 +201,15 @@ class WorkflowApplicationService:
     
     async def delete_workflow(self, workflow_id: WorkflowId) -> bool:
         """
-        Delete a workflow if allowed.
+        Delete a workflow.
         
         Args:
             workflow_id: The workflow ID
             
         Returns:
             True if deleted, False if not found
-            
-        Raises:
-            ValueError: If workflow cannot be deleted
         """
         async with self._repository_factory.create_unit_of_work() as uow:
-            domain_service = WorkflowDomainService(uow.workflows)
-            
-            if not await domain_service.can_delete_workflow(workflow_id):
-                workflow = await uow.workflows.find_by_id(workflow_id)
-                if workflow:
-                    raise ValueError(
-                        f"Cannot delete workflow {workflow_id}: "
-                        f"active workflows must be deactivated first"
-                    )
-                return False
-            
             deleted = await uow.workflows.delete(workflow_id)
             if deleted:
                 await uow.commit()

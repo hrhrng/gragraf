@@ -2,16 +2,14 @@ import React, { useState } from 'react';
 import { Text, Card } from '@radix-ui/themes';
 import { Node } from 'reactflow';
 import { 
-  ComponentInstanceIcon, 
-  ExitIcon,
   GlobeIcon,
   FileTextIcon,
   BorderSplitIcon,
   PersonIcon,
-  PlayIcon,
   CheckCircledIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  MagnifyingGlassIcon
 } from '@radix-ui/react-icons';
 import { NodeData } from '../types';
 

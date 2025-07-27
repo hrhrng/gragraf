@@ -40,30 +40,7 @@ export const VariablePicker: React.FC<VariablePickerProps> = ({
     variable.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Categorize variables for better organization
-  const categorizeVariables = (variables: string[]) => {
-    const categories = {
-      inputs: variables.filter(v => v.includes('input') || v.includes('query') || v.includes('user')),
-      outputs: variables.filter(v => v.includes('output') || v.includes('result') || v.includes('response')),
-      data: variables.filter(v => v.includes('data') || v.includes('content') || v.includes('body')),
-      other: variables.filter(v => 
-        !v.includes('input') && !v.includes('query') && !v.includes('user') &&
-        !v.includes('output') && !v.includes('result') && !v.includes('response') &&
-        !v.includes('data') && !v.includes('content') && !v.includes('body')
-      )
-    };
-
-    // Remove empty categories
-    Object.keys(categories).forEach(key => {
-      if (categories[key as keyof typeof categories].length === 0) {
-        delete categories[key as keyof typeof categories];
-      }
-    });
-
-    return categories;
-  };
-
-  const categories = categorizeVariables(filteredVariables);
+  // Simple variable list without categorization
 
   const handleVariableClick = (variable: string) => {
     onVariableSelect(`{{${variable}}}`);
@@ -95,14 +72,14 @@ export const VariablePicker: React.FC<VariablePickerProps> = ({
               onClick={() => showMappingHelper ? handleMappingHelperClick(variable) : handleVariableClick(variable)}
             >
               <Flex justify="between" align="center">
-                <Flex align="center" gap="2">
-                  <CodeIcon className="w-3 h-3 text-[var(--color-text-secondary)]" />
-                  <Text size="2" className="text-white font-mono">
+                <Flex align="center" gap="2" className="min-w-0 flex-1">
+                  <CodeIcon className="w-3 h-3 text-[var(--color-text-secondary)] flex-shrink-0" />
+                  <Text size="2" className="text-white font-mono truncate overflow-hidden">
                     {variable}
                   </Text>
                 </Flex>
                 {showMappingHelper && (
-                  <Badge size="1" variant="soft" color="blue">
+                  <Badge size="1" variant="soft" color="blue" className="flex-shrink-0">
                     Map
                   </Badge>
                 )}
@@ -166,18 +143,7 @@ export const VariablePicker: React.FC<VariablePickerProps> = ({
               <ScrollArea className="max-h-64">
                 {filteredVariables.length > 0 ? (
                   <div className="space-y-4">
-                    {Object.keys(categories).length > 1 ? (
-                      // Categorized view
-                      Object.entries(categories).map(([categoryName, variables], index) => (
-                        <div key={categoryName}>
-                          {index > 0 && <Separator className="my-3" />}
-                          {renderVariableList(variables, categoryName.charAt(0).toUpperCase() + categoryName.slice(1))}
-                        </div>
-                      ))
-                    ) : (
-                      // Simple list view
-                      renderVariableList(filteredVariables)
-                    )}
+                    {renderVariableList(filteredVariables)}
                   </div>
                 ) : searchTerm ? (
                   <div className="p-4 text-center">

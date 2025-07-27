@@ -2,6 +2,10 @@ from typing import Dict, Any, List
 from pydantic import BaseModel, Field
 from ..utils.templating import render_config
 from . import Conditional
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 
 class BranchCondition(BaseModel):
     condition: str = Field(..., description="A Python expression to evaluate for branching.")
@@ -31,13 +35,17 @@ class BranchNode(Conditional):
                     if result:
                         decision = f"branch-{index}"
                         break
-                except Exception:
+                except Exception as e:
+                    print(f"Error evaluating condition: {e}")
                     continue
             else:
                 # No condition matched, use else branch if available
-                decision = "else" if rendered_config.hasElse else "default"
-        except Exception:
-            decision = "default"
+                if rendered_config.hasElse:
+                    decision = "else"
+                raise ValueError("No condition matched and no else branch available.")
+        except Exception as e:
+            logger.error(f"Error evaluating conditions: {e}")
+            raise ValueError("Error evaluating conditions.") from e
         
         return {f"{self.id}_decision": decision}
     

@@ -1,6 +1,6 @@
-import React, { ReactNode } from 'react';
-import { Text, TextField, TextArea, Select, Switch, Button, Badge, Flex } from '@radix-ui/themes';
-import { PlusIcon, Cross2Icon, ChevronDownIcon } from '@radix-ui/react-icons';
+import React from 'react';
+import { Text, TextField, TextArea, Select, Switch, Button, Badge } from '@radix-ui/themes';
+import { PlusIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { VariablePicker } from '../VariablePicker';
 
 export interface FormFieldBaseProps {
@@ -9,7 +9,7 @@ export interface FormFieldBaseProps {
   required?: boolean;
   error?: string;
   helpText?: string;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export interface TextFieldProps extends Omit<FormFieldBaseProps, 'children'> {
@@ -51,7 +51,7 @@ export interface DynamicListFieldProps extends Omit<FormFieldBaseProps, 'childre
   addButtonText?: string;
   minItems?: number;
   maxItems?: number;
-  renderItem: (item: any, index: number) => ReactNode;
+  renderItem: (item: any, index: number) => React.ReactNode;
 }
 
 // 基础字段包装器
@@ -65,19 +65,6 @@ export const FormFieldBase: React.FC<FormFieldBaseProps> = ({
 }) => {
   return (
     <div className="space-y-2">
-      {/* Label */}
-      <div className="flex items-center gap-2">
-        <Text size="2" weight="medium" className="text-[var(--color-text-primary)]">
-          {label}
-          {required && <span className="text-red-400 ml-1">*</span>}
-        </Text>
-        {description && (
-          <Text size="1" className="text-[var(--color-text-secondary)]">
-            {description}
-          </Text>
-        )}
-      </div>
-
       {/* Field */}
       <div className="space-y-1">
         {children}
@@ -124,14 +111,26 @@ export const ConfigTextField: React.FC<TextFieldProps> = ({
       helpText={helpText}
     >
       <div className="space-y-2">
-        {showVariablePicker && availableVariables.length > 0 && onVariableSelect && (
-          <div className="flex justify-end">
+        {/* Label and Variable Picker Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Text size="2" weight="medium" className="text-[var(--color-text-primary)]">
+              {label}
+              {required && <span className="text-red-400 ml-1">*</span>}
+            </Text>
+            {description && (
+              <Text size="1" className="text-[var(--color-text-secondary)]">
+                {description}
+              </Text>
+            )}
+          </div>
+          {showVariablePicker && availableVariables.length > 0 && onVariableSelect && (
             <VariablePicker
               availableVariables={availableVariables}
               onVariableSelect={onVariableSelect}
             />
-          </div>
-        )}
+          )}
+        </div>
         <TextField.Root
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -247,7 +246,7 @@ export const ConfigSwitchField: React.FC<SwitchFieldProps> = ({
       error={error}
       helpText={helpText}
     >
-      <Flex align="center" gap="2">
+      <div className="flex items-center gap-2">
         <Switch
           checked={checked}
           onCheckedChange={onChange}
@@ -256,7 +255,7 @@ export const ConfigSwitchField: React.FC<SwitchFieldProps> = ({
         <Text size="1" className={checked ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}>
           {checked ? 'Enabled' : 'Disabled'}
         </Text>
-      </Flex>
+      </div>
     </FormFieldBase>
   );
 };

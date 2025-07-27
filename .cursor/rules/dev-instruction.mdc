@@ -2,8 +2,5 @@
 alwaysApply: true
 ---
 1. before develop, generate a detail plan in './dev_plan.md`, tick it when you complete a plan.
-2. 这个项目使用langgraph来编排一个类似于dify或者n8n的应用。
-3. 利用langgraph的node以及langchain功能，实现带有streamable http 协议的mcp的agent节点，简单的知识库节点，代码执行器节点，http请求节点以及分支节点。
-前端生成一个画布可以编排这些节点，需要处理好输入输出数据类型的映射关系，做一些简单的校验，最终生成dsl
-后端拿到dsl后，传给后端，后端解析dsl并生产，后端编码使用tdd的方式，先写测试用例，做好mock代码，
-写好代码后更新readme
+2. frontend server(port 3000) and backend server(8000) are already start in my terminal, just modify code.
+3. use playwright tool to test frontend after you change frontend code for *EVERYTIME*

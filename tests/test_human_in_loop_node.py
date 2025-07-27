@@ -53,7 +53,7 @@ class TestHumanInLoopNode:
         state = {
             "previous_data": "some data",
             "hilp_1_human_input": {
-                "decision": "approved",
+                "decision": "approve",
                 "comment": "Looks good to me"
             }
         }
@@ -61,9 +61,9 @@ class TestHumanInLoopNode:
         result = node.execute(state)
         
         # Should contain decision and comment
-        assert result["hilp_1_decision"] == "approved"
+        assert result["hilp_1_decision"] == "approve"
         assert result["hilp_1_comment"] == "Looks good to me"
-        assert result["hilp_1_user_input"]["decision"] == "approved"
+        assert result["hilp_1_user_input"]["decision"] == "approve"
         assert "__interrupt__" not in result
 
     def test_execute_with_human_rejection(self):
@@ -75,7 +75,7 @@ class TestHumanInLoopNode:
         state = {
             "previous_data": "some data",
             "hilp_1_human_input": {
-                "decision": "rejected",
+                "decision": "reject",
                 "comment": "Not ready yet"
             }
         }
@@ -83,7 +83,7 @@ class TestHumanInLoopNode:
         result = node.execute(state)
         
         # Should contain rejection decision
-        assert result["hilp_1_decision"] == "rejected"
+        assert result["hilp_1_decision"] == "reject"
         assert result["hilp_1_comment"] == "Not ready yet"
         assert "__interrupt__" not in result
 
@@ -95,13 +95,13 @@ class TestHumanInLoopNode:
         # State with existing decision
         state = {
             "previous_data": "some data",
-            "hilp_1_decision": "approved"
+            "hilp_1_decision": "approve"
         }
         
         result = node.execute(state)
         
         # Should return existing decision without triggering interrupt
-        assert result["hilp_1_decision"] == "approved"
+        assert result["hilp_1_decision"] == "approve"
         assert "__interrupt__" not in result
 
     def test_execute_handles_template_errors_gracefully(self):
@@ -125,7 +125,7 @@ class TestHumanInLoopNode:
         config = HumanInLoopConfig()
         node = HumanInLoopNode("hilp_1", config)
         
-        state = {"hilp_1_decision": "approved"}
+        state = {"hilp_1_decision": "approve"}
         decision = node.get_decision(state)
         
         assert decision == "approval"

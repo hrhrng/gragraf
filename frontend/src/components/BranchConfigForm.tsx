@@ -99,7 +99,7 @@ export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({
     const newOperator = operator !== null ? operator : currentCondition.operator;
     const newValue = value !== null ? value : currentCondition.value;
     
-    const conditionString = `{{${newVariable}}} ${newOperator} ${newValue}`;
+    const conditionString = `'{{${newVariable}}}' ${newOperator} '${newValue}'`;
     setValue(`conditions.${index}.condition`, conditionString);
   };
 
@@ -128,7 +128,6 @@ export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({
         title="条件配置"
         description="配置分支条件，支持多条件判断"
         icon={<BorderSplitIcon />}
-        badge={{ text: `${fields.length} 条件`, color: 'yellow' }}
       >
         <ConfigDynamicListField
           label="分支条件"
@@ -149,31 +148,35 @@ export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({
                 </Text>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
-                {/* Variable Selection */}
-                <ConfigSelectField
-                  label="变量"
-                  value={field.variable}
-                  onChange={(value) => handleVariableSelect(index, value)}
-                  options={availableVariables.map(variable => ({ 
-                    value: variable, 
-                    label: variable 
-                  }))}
-                  placeholder="选择变量"
-                />
-
-                {/* Operator Selection */}
-                <ConfigSelectField
-                  label="操作符"
-                  value={field.operator}
-                  onChange={(value) => handleOperatorChange(index, value)}
-                  options={operatorOptions}
-                />
+              <div className="space-y-3">
+                {/* Variable and Operator Selection - on same line */}
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <ConfigSelectField
+                      label="变量"
+                      value={watch(`conditions.${index}.variable`) || ''}
+                      onChange={(value) => handleVariableSelect(index, value)}
+                      options={availableVariables.map(variable => ({ 
+                        value: variable, 
+                        label: variable 
+                      }))}
+                      placeholder="选择变量"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <ConfigSelectField
+                      label="操作符"
+                      value={watch(`conditions.${index}.operator`) || ''}
+                      onChange={(value) => handleOperatorChange(index, value)}
+                      options={operatorOptions}
+                    />
+                  </div>
+                </div>
 
                 {/* Value Input */}
                 <ConfigTextField
                   label="比较值"
-                  value={field.value}
+                  value={watch(`conditions.${index}.value`) || ''}
                   onChange={(value) => handleValueChange(index, value)}
                   placeholder="输入比较值"
                 />
@@ -184,7 +187,7 @@ export const BranchConfigForm: React.FC<BranchConfigFormProps> = ({
                     生成的条件表达式：
                   </Text>
                   <div className="p-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] font-mono text-sm">
-                    {field.condition || '请配置完整条件'}
+                    {watch(`conditions.${index}.condition`) || '请配置完整条件'}
                   </div>
                 </div>
               </div>

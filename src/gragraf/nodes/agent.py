@@ -32,12 +32,12 @@ class AgentNode:
             model_name=self.config.model_name,
             temperature=self.config.temperature,
             base_url=maybe_proxy,
-        )
+        ).bind(stream=True)
         
         self.prompt_template = ChatPromptTemplate.from_messages([
-            ("system", self.config.system_prompt),
-            ("user", "{input}")
-        ])
+            ("system", config.system_prompt),
+            ("human", config.user_prompt)
+        ], template_format="mustache")
         self.output_parser = StrOutputParser()
         self.chain = self.prompt_template | self.llm | self.output_parser
 
@@ -46,16 +46,13 @@ class AgentNode:
         try:
             rendered_config = render_config(self.config, state)
             processed_state = self._apply_variable_mappings(state, rendered_config.variable_mappings)
-            
-            result = self.chain.invoke({"input": rendered_config.user_prompt})
-            
+            result = self.chain.invoke(processed_state)
             output_key = self.config.output_name or f"{self.node_id}_output"
             return {output_key: result}
             
         except Exception as e:
             logger.error(f"Agent {self.node_id} execution failed: {e}")
-            error_key = f"{self.node_id}_error"
-            return {error_key: f"Agent execution failed: {str(e)}"}
+            raise Exception(f"Agent {self.node_id} execution failed: {str(e)}") from e
 
     async def execute_async(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """Async execute method for testing compatibility."""
@@ -63,15 +60,14 @@ class AgentNode:
             rendered_config = render_config(self.config, state)
             processed_state = self._apply_variable_mappings(state, rendered_config.variable_mappings)
             
-            result = await self.chain.ainvoke({"input": rendered_config.user_prompt})
+            result = await self.chain.ainvoke(processed_state)
             
             output_key = self.config.output_name or f"{self.node_id}_output"
             return {output_key: result}
             
         except Exception as e:
             logger.error(f"Agent {self.node_id} execution failed: {e}")
-            error_key = f"{self.node_id}_error"
-            return {error_key: f"Agent execution failed: {str(e)}"}
+            raise Exception(f"Agent {self.node_id} execution failed: {str(e)}") from e
 
     def _apply_variable_mappings(self, state: Dict[str, Any], mappings: Dict[str, str]) -> Dict[str, Any]:
         """Apply variable mappings to transform state variables for the agent."""

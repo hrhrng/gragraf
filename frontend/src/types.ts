@@ -1,5 +1,6 @@
 export interface NodeData {
   label: string;
+  nodeType?: string; // 节点类型，用于确定图标样式
   config: any;
 }
 

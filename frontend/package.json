@@ -14,6 +14,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "date-fns": "^4.1.0",
+    "http-proxy-middleware": "^3.0.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.60.0",
@@ -46,7 +47,6 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://127.0.0.1:8000",
   "devDependencies": {
     "@types/node": "^24.0.10",
     "autoprefixer": "^10.4.19",

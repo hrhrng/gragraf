@@ -211,7 +211,7 @@ class GraphCompiler:
             instance = self._create_node_instance(node_id)
             self.node_instances[node_id] = instance
             if node_id in edges_by_target and len(edges_by_target[node_id]) > 1:
-                workflow.add_node(node_id, instance.execute, defer = True) # 延迟执行
+                workflow.add_node(node_id, instance.execute) # 延迟执行
             else:
                 workflow.add_node(node_id, instance.execute)
         

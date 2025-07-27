@@ -1,15 +1,21 @@
 import React, { ReactNode } from 'react';
-import { Card, Text, Heading, Badge, Separator } from '@radix-ui/themes';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Card, Heading, Text, Badge, Separator } from '@radix-ui/themes';
+import { 
+  PlayIcon, 
+  ExitIcon, 
+  GlobeIcon, 
+  PersonIcon, 
+  FileTextIcon, 
+  BorderSplitIcon, 
+  CheckCircledIcon, 
+  QuestionMarkIcon,
+  InfoCircledIcon
+} from '@radix-ui/react-icons';
 
 export interface ConfigSectionProps {
   title: string;
   description?: string;
   icon?: ReactNode;
-  badge?: {
-    text: string;
-    color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'gray';
-  };
   children: ReactNode;
   collapsible?: boolean;
   defaultExpanded?: boolean;
@@ -29,7 +35,6 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({
   title,
   description,
   icon,
-  badge,
   children,
   collapsible = false,
   defaultExpanded = true
@@ -59,11 +64,6 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({
             <Heading size="3" className="text-[var(--color-text-primary)]">
               {title}
             </Heading>
-            {badge && (
-              <Badge size="1" variant="soft" color={badge.color || 'blue'}>
-                <Text size="1">{badge.text}</Text>
-              </Badge>
-            )}
           </div>
           {collapsible && (
             <InfoCircledIcon 
@@ -118,17 +118,62 @@ export const ConfigFormBase: React.FC<ConfigFormBaseProps> = ({
   };
 
   const getNodeTypeIcon = (type: string) => {
-    // 返回节点类型对应的图标容器
-    const iconMap: Record<string, { bgColor: string; borderColor: string; textColor: string }> = {
-      start: { bgColor: 'bg-green-900/20', borderColor: 'border-green-700/30', textColor: 'text-green-300' },
-      end: { bgColor: 'bg-red-900/20', borderColor: 'border-red-700/30', textColor: 'text-red-300' },
-      httpRequest: { bgColor: 'bg-teal-900/20', borderColor: 'border-teal-700/30', textColor: 'text-teal-300' },
-      agent: { bgColor: 'bg-indigo-900/20', borderColor: 'border-indigo-700/30', textColor: 'text-indigo-300' },
-      knowledgeBase: { bgColor: 'bg-purple-900/20', borderColor: 'border-purple-700/30', textColor: 'text-purple-300' },
-      branch: { bgColor: 'bg-orange-900/20', borderColor: 'border-orange-700/30', textColor: 'text-orange-300' },
-      humanInLoop: { bgColor: 'bg-red-900/20', borderColor: 'border-red-700/30', textColor: 'text-red-300' },
+    // 返回节点类型对应的图标容器和图标组件
+    const iconMap: Record<string, { 
+      bgColor: string; 
+      borderColor: string; 
+      textColor: string; 
+      icon: React.ComponentType<any>;
+    }> = {
+      start: { 
+        bgColor: 'bg-green-900/20', 
+        borderColor: 'border-green-700/30', 
+        textColor: 'text-green-300',
+        icon: PlayIcon
+      },
+      end: { 
+        bgColor: 'bg-red-900/20', 
+        borderColor: 'border-red-700/30', 
+        textColor: 'text-red-300',
+        icon: ExitIcon
+      },
+      httpRequest: { 
+        bgColor: 'bg-teal-900/20', 
+        borderColor: 'border-teal-700/30', 
+        textColor: 'text-teal-300',
+        icon: GlobeIcon
+      },
+      agent: { 
+        bgColor: 'bg-indigo-900/20', 
+        borderColor: 'border-indigo-700/30', 
+        textColor: 'text-indigo-300',
+        icon: PersonIcon
+      },
+      knowledgeBase: { 
+        bgColor: 'bg-purple-900/20', 
+        borderColor: 'border-purple-700/30', 
+        textColor: 'text-purple-300',
+        icon: FileTextIcon
+      },
+      branch: { 
+        bgColor: 'bg-orange-900/20', 
+        borderColor: 'border-orange-700/30', 
+        textColor: 'text-orange-300',
+        icon: BorderSplitIcon
+      },
+      humanInLoop: { 
+        bgColor: 'bg-red-900/20', 
+        borderColor: 'border-red-700/30', 
+        textColor: 'text-red-300',
+        icon: CheckCircledIcon
+      },
     };
-    return iconMap[type] || { bgColor: 'bg-gray-700/20', borderColor: 'border-gray-600/30', textColor: 'text-gray-300' };
+    return iconMap[type] || { 
+      bgColor: 'bg-gray-700/20', 
+      borderColor: 'border-gray-600/30', 
+      textColor: 'text-gray-300',
+      icon: QuestionMarkIcon
+    };
   };
 
   const handleLabelSubmit = () => {
@@ -150,6 +195,7 @@ export const ConfigFormBase: React.FC<ConfigFormBaseProps> = ({
   };
 
   const nodeStyle = getNodeTypeIcon(nodeType);
+  const IconComponent = nodeStyle.icon;
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -158,7 +204,7 @@ export const ConfigFormBase: React.FC<ConfigFormBaseProps> = ({
         <div className="flex items-center gap-3">
           {/* Node type icon */}
           <div className={`w-8 h-8 rounded flex items-center justify-center ${nodeStyle.bgColor} ${nodeStyle.borderColor} border`}>
-            <div className={`w-2 h-2 rounded-full ${nodeStyle.bgColor.replace('/20', '/60')}`} />
+            <IconComponent className={`w-4 h-4 ${nodeStyle.textColor}`} />
           </div>
           
           {/* Editable node label */}
@@ -182,10 +228,7 @@ export const ConfigFormBase: React.FC<ConfigFormBaseProps> = ({
             </Heading>
           )}
           
-          {/* Node type badge */}
-          <Badge size="2" variant="soft" color={getNodeTypeColor(nodeType)}>
-            <Text size="1" weight="medium">{nodeType}</Text>
-          </Badge>
+
         </div>
         
         {/* Available Variables */}
@@ -196,8 +239,8 @@ export const ConfigFormBase: React.FC<ConfigFormBaseProps> = ({
             </Text>
             <div className="flex flex-wrap gap-1">
               {availableVariables.map((variable) => (
-                <Badge key={variable} size="1" variant="soft" color="gray">
-                  <Text size="1" className="font-mono">{variable}</Text>
+                <Badge key={variable} size="1" variant="soft" color="gray" className="max-w-xs">
+                  <Text size="1" className="font-mono truncate overflow-hidden">{variable}</Text>
                 </Badge>
               ))}
             </div>

@@ -107,7 +107,7 @@ export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({
 
   const handleVariableSelect = (field: keyof FormData, variable: string) => {
     const currentValue = watch(field) as string;
-    const newValue = currentValue + `{{${variable}}}`;
+    const newValue = currentValue + variable;
     setValue(field, newValue);
   };
 
@@ -191,20 +191,20 @@ export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({
             <Flex gap="2">
               <ConfigTextField
                 label=""
-                value={field.key}
+                value={watch(`headersList.${index}.key`) || ''}
                 onChange={(value) => setValue(`headersList.${index}.key`, value)}
                 placeholder="Header Name"
               />
               <ConfigTextField
                 label=""
-                value={field.value}
+                value={watch(`headersList.${index}.value`) || ''}
                 onChange={(value) => setValue(`headersList.${index}.value`, value)}
                 placeholder="Header Value"
                 showVariablePicker
                 availableVariables={availableVariables}
                 onVariableSelect={(variable) => {
                   const currentValue = watch(`headersList.${index}.value`);
-                  setValue(`headersList.${index}.value`, currentValue + `{{${variable}}}`);
+                  setValue(`headersList.${index}.value`, currentValue + variable);
                 }}
               />
             </Flex>
@@ -231,20 +231,20 @@ export const HttpRequestConfigForm: React.FC<HttpRequestConfigFormProps> = ({
             <Flex gap="2">
               <ConfigTextField
                 label=""
-                value={field.key}
+                value={watch(`paramsList.${index}.key`) || ''}
                 onChange={(value) => setValue(`paramsList.${index}.key`, value)}
                 placeholder="Parameter Name"
               />
               <ConfigTextField
                 label=""
-                value={field.value}
+                value={watch(`paramsList.${index}.value`) || ''}
                 onChange={(value) => setValue(`paramsList.${index}.value`, value)}
                 placeholder="Parameter Value"
                 showVariablePicker
                 availableVariables={availableVariables}
                 onVariableSelect={(variable) => {
                   const currentValue = watch(`paramsList.${index}.value`);
-                  setValue(`paramsList.${index}.value`, currentValue + `{{${variable}}}`);
+                  setValue(`paramsList.${index}.value`, currentValue + variable);
                 }}
               />
             </Flex>

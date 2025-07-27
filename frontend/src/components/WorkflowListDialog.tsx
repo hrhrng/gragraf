@@ -78,26 +78,6 @@ export const WorkflowListDialog: React.FC<WorkflowListDialogProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft': return 'blue';
-      case 'active': return 'green';
-      case 'inactive': return 'orange';
-      case 'archived': return 'gray';
-      default: return 'blue';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'draft': return '草稿';
-      case 'active': return '活跃';
-      case 'inactive': return '非活跃';
-      case 'archived': return '已归档';
-      default: return status;
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN');
   };

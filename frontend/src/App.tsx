@@ -25,6 +25,8 @@ import ConfigPanel from './components/ConfigPanel';
 import { SaveWorkflowDialog } from './components/SaveWorkflowDialog';
 import { WorkflowListDialog } from './components/WorkflowListDialog';
 import { ApprovalModal } from './components/ApprovalModal';
+import { ImportWorkflowDialog } from './components/ImportWorkflowDialog';
+import { WorkflowMenu } from './components/WorkflowMenu';
 import { BookmarkIcon, MagnifyingGlassIcon, Cross1Icon, PlusIcon, FilePlusIcon } from '@radix-ui/react-icons';
 import { workflowApi, Workflow } from './services/workflowApi';
 import { DockToolbar } from './components/DockToolbar';
@@ -59,6 +61,11 @@ function App() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [listDialogOpen, setListDialogOpen] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  
+  // 导入工作流相关状态
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
+  const [existingWorkflows, setExistingWorkflows] = useState<{ name: string }[]>([]);
   
   // 全局错误状态
   const [globalError, setGlobalError] = useState<string>('');
@@ -126,6 +133,7 @@ function App() {
       position,
       data: { 
         label, 
+        nodeType: type, // 添加节点类型到数据中
         config: {} 
       },
     };
@@ -140,17 +148,41 @@ function App() {
   const onConfigChange = (nodeId: string, newConfig: any) => {
     setNodes((nds) =>
       nds.map((node) =>
-        node.id === nodeId ? { ...node, data: { ...node.data, config: newConfig } } : node
+        node.id === nodeId ? { 
+          ...node, 
+          data: { 
+            ...node.data, 
+            config: newConfig,
+            nodeType: node.type // 确保nodeType字段始终存在
+          } 
+        } : node
       )
     );
   };
 
   const onNodeChange = (nodeUpdates: Partial<Node<NodeData>>) => {
     if (selectedNode) {
-      // 如果更新包含data.label，则同时更新节点ID
+      // 如果更新包含data.label，则检查重名并更新节点ID
       if (nodeUpdates.data?.label) {
         const newLabel = nodeUpdates.data.label;
         const nodeType = selectedNode.type;
+        
+        // 检查标签名称是否重复（排除当前节点）
+        const isDuplicateLabel = nodes.some(n => 
+          n.id !== selectedNode.id && 
+          n.data.label === newLabel
+        );
+        
+        if (isDuplicateLabel) {
+          // 显示错误提示，不更新节点
+          setGlobalError('节点名称已存在，请使用其他名称');
+          setShowGlobalError(true);
+          // 3秒后自动关闭错误提示
+          setTimeout(() => {
+            setShowGlobalError(false);
+          }, 3000);
+          return;
+        }
         
         // 生成新的ID，基于类型和标签
         const sanitizedLabel = newLabel.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -165,7 +197,16 @@ function App() {
           counter++;
         }
         
-        const updatedNode = { ...selectedNode, ...nodeUpdates, id: finalId };
+        const updatedNode = { 
+          ...selectedNode, 
+          ...nodeUpdates, 
+          id: finalId,
+          data: {
+            ...selectedNode.data,
+            ...nodeUpdates.data,
+            nodeType: selectedNode.type // 确保nodeType字段始终存在
+          }
+        };
         
         // 更新节点
         setNodes((nds) =>
@@ -189,12 +230,28 @@ function App() {
         // 普通更新，不涉及ID变更
         setNodes((nds) =>
           nds.map((node) =>
-            node.id === selectedNode.id ? { ...node, ...nodeUpdates } : node
+            node.id === selectedNode.id ? { 
+              ...node, 
+              ...nodeUpdates,
+              data: {
+                ...node.data,
+                ...nodeUpdates.data,
+                nodeType: node.type // 确保nodeType字段始终存在
+              }
+            } : node
           )
         );
         
         setSelectedNode((current) => 
-          current ? { ...current, ...nodeUpdates } : current
+          current ? { 
+            ...current, 
+            ...nodeUpdates,
+            data: {
+              ...current.data,
+              ...nodeUpdates.data,
+              nodeType: current.type // 确保nodeType字段始终存在
+            }
+          } : current
         );
       }
     }
@@ -545,7 +602,7 @@ function App() {
   };
 
   // Handle human approval/rejection
-  const handleHumanDecision = async (decision: 'approved' | 'rejected', comment: string) => {
+  const handleHumanDecision = async (decision: 'approve' | 'reject', comment: string) => {
     console.log('handleHumanDecision called with:', { decision, comment, humanInputRequired, currentThreadId });
     
     if (!humanInputRequired || !currentThreadId) {
@@ -592,6 +649,10 @@ function App() {
       console.error('Error resuming workflow:', error);
       setGlobalError('Failed to resume workflow after human input');
       setShowGlobalError(true);
+      // 3秒后自动关闭错误提示
+      setTimeout(() => {
+        setShowGlobalError(false);
+      }, 3000);
     } finally {
       setCurrentThreadId(null);
     }
@@ -763,15 +824,19 @@ function App() {
     };
     
     if (dsl && dsl.nodes) {
-      const loadedNodes = dsl.nodes.map((node: any) => ({
-        id: node.id,
-        type: reverseTypeMapping[node.type] || node.type,
-        position: node.position || { x: Math.random() * 400, y: Math.random() * 300 },
-        data: {
-          label: node.config?.label || node.type,
-          config: node.config || {}
-        }
-      }));
+      const loadedNodes = dsl.nodes.map((node: any) => {
+        const frontendType = reverseTypeMapping[node.type] || node.type;
+        return {
+          id: node.id,
+          type: frontendType,
+          position: node.position || { x: Math.random() * 400, y: Math.random() * 300 },
+          data: {
+            label: node.config?.label || node.type,
+            nodeType: frontendType, // 添加nodeType字段
+            config: node.config || {}
+          }
+        };
+      });
       setNodes(loadedNodes);
     }
     
@@ -851,6 +916,79 @@ function App() {
     setNodes(arrangedNodes);
   };
 
+  // 处理导入工作流
+  const handleImport = async () => {
+    try {
+      // 获取现有工作流列表用于重复检查
+      const response = await workflowApi.getWorkflows();
+      setExistingWorkflows(response.workflows.map((w: Workflow) => ({ name: w.name })));
+      setImportDialogOpen(true);
+    } catch (error) {
+      console.error('获取工作流列表失败:', error);
+      setGlobalError('获取工作流列表失败');
+      setShowGlobalError(true);
+      setTimeout(() => setShowGlobalError(false), 3000);
+    }
+  };
+
+  // 处理导出工作流
+  const handleExportWorkflow = () => {
+    try {
+      const workflowData = {
+        name: currentWorkflow?.name || '未命名工作流',
+        description: currentWorkflow?.description || '',
+        nodes: nodes,
+        edges: edges
+      };
+
+      const jsonString = JSON.stringify(workflowData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${workflowData.name}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setGlobalSuccess('工作流导出成功');
+      setShowGlobalSuccess(true);
+      setTimeout(() => setShowGlobalSuccess(false), 3000);
+    } catch (error) {
+      console.error('导出工作流失败:', error);
+      setGlobalError('导出工作流失败');
+      setShowGlobalError(true);
+      setTimeout(() => setShowGlobalError(false), 3000);
+    }
+  };
+
+  // 执行导入工作流
+  const handleImportData = (importData: { name: string; description?: string; nodes: Node<NodeData>[]; edges: Edge[] }) => {
+    try {
+      // 设置导入的节点和边
+      setNodes(importData.nodes);
+      setEdges(importData.edges);
+      
+      // 清除当前工作流状态
+      setCurrentWorkflow(null);
+      
+      // 显示成功提示
+      setGlobalSuccess(`工作流 "${importData.name}" 导入成功`);
+      setShowGlobalSuccess(true);
+      setTimeout(() => setShowGlobalSuccess(false), 3000);
+      
+      // 关闭导入对话框
+      setImportDialogOpen(false);
+    } catch (error) {
+      console.error('导入工作流失败:', error);
+      setGlobalError('导入工作流失败');
+      setShowGlobalError(true);
+      setTimeout(() => setShowGlobalError(false), 3000);
+    }
+  };
+
   return (
     <div className="flex h-screen w-screen bg-[var(--color-bg-primary)] overflow-hidden">
       <Sidebar 
@@ -887,27 +1025,9 @@ function App() {
           />
         </ReactFlow>
 
-        {/* Floating help text when no nodes selected */}
-        {!selectedNode && nodes.length <= 2 && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-            <div className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm border border-[var(--color-border-primary)] rounded-xl p-8 max-w-md">
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Welcome to GraGraf
-              </h3>
-              <p className="text-[var(--color-text-secondary)] leading-relaxed">
-                Start building your workflow by adding nodes from the sidebar. 
-                Connect them together to create powerful automation flows.
-              </p>
-              <div className="mt-4 text-sm text-[var(--color-text-secondary)]">
-                💡 Tip: Click on any node to configure its settings
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Workflow management and stats */}
+        {/* Workflow management and stats - 统一向右对齐 */}
         <div className="absolute top-4 right-4 flex flex-col gap-3">
-          {/* 工作流管理按钮 */}
+          {/* 工作流管理按钮 - 水平排列，向右对齐 */}
           <div className="flex gap-2">
             {/* 如果是现有工作流，显示快速保存和另存为按钮 */}
             {currentWorkflow ? (
@@ -953,9 +1073,15 @@ function App() {
             >
               <MagnifyingGlassIcon className="w-3.5 h-3.5" />
             </UnifiedButton>
+
+            {/* WorkflowMenu按钮 - 作为按钮组的一部分 */}
+            <WorkflowMenu
+              onImport={handleImport}
+              onExport={handleExportWorkflow}
+            />
           </div>
 
-          {/* 当前工作流信息 */}
+          {/* 当前工作流信息 - 只在有工作流时显示，向右对齐 */}
           {currentWorkflow && (
             <div className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm border border-[var(--color-border-primary)] rounded-lg px-3 py-2">
               <div className="text-sm">
@@ -968,61 +1094,88 @@ function App() {
               </div>
             </div>
           )}
-
         </div>
+
+        {/* Floating help text when no nodes selected */}
+        {!selectedNode && nodes.length <= 2 && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+            <div className="bg-[var(--color-bg-secondary)]/90 backdrop-blur-sm border border-[var(--color-border-primary)] rounded-xl p-8 max-w-md">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Welcome to GraGraf
+              </h3>
+              <p className="text-[var(--color-text-secondary)] leading-relaxed">
+                Start building your workflow by adding nodes from the sidebar. 
+                Connect them together to create powerful automation flows.
+              </p>
+              <div className="mt-4 text-sm text-[var(--color-text-secondary)]">
+                💡 Tip: Click on any node to configure its settings
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Right Panel */}
+        <RightPanel
+          nodes={nodes}
+          edges={edges}
+          selectedNode={selectedNode}
+          onConfigChange={onConfigChange}
+          result={result}
+          isLoading={isLoading}
+          onRetry={handleRetry}
+          showRunForm={showRunForm}
+          runFormInputs={startNodeInputs}
+          onRunSubmit={handleRunSubmit}
+          onRunCancel={handleRunCancel}
+        />
+        
+        {/* Configuration Panel - 浮窗 */}
+        <ConfigPanel 
+          nodes={nodes}
+          edges={edges}
+          selectedNode={selectedNode} 
+          onConfigChange={onConfigChange}
+          onNodeChange={onNodeChange}
+        />
+        
+        {/* macOS Dock Style Toolbar */}
+        <DockToolbar 
+          onRunWorkflow={handleRunClick}
+          onAutoLayout={autoLayout}
+        />
+
       </div>
-      
-      <RightPanel 
-        nodes={nodes}
-        edges={edges}
-        selectedNode={selectedNode} 
-        onConfigChange={onConfigChange}
-        result={result}
-        isLoading={isLoading}
-        onRetry={handleRetry}
-        showRunForm={showRunForm}
-        runFormInputs={startNodeInputs}
-        onRunSubmit={handleRunSubmit}
-        onRunCancel={handleRunCancel}
-      />
-      
-      {/* Configuration Panel - 浮窗 */}
-      <ConfigPanel 
-        nodes={nodes}
-        edges={edges}
-        selectedNode={selectedNode} 
-        onConfigChange={onConfigChange}
-        onNodeChange={onNodeChange}
-      />
-      
-      {/* macOS Dock Style Toolbar */}
-      <DockToolbar 
-        onRunWorkflow={handleRunClick}
-        onAutoLayout={autoLayout}
-      />
 
-      {/* 工作流存储对话框 */}
-      <SaveWorkflowDialog
-        open={saveDialogOpen}
-        onOpenChange={setSaveDialogOpen}
-        onSave={handleSaveWorkflow}
-        currentWorkflowName={currentWorkflow?.name || ''}
-        isLoading={saveLoading}
-      />
+        {/* 工作流存储对话框 */}
+        <SaveWorkflowDialog
+          open={saveDialogOpen}
+          onOpenChange={setSaveDialogOpen}
+          onSave={handleSaveWorkflow}
+          currentWorkflowName={currentWorkflow?.name || ''}
+          isLoading={saveLoading}
+        />
 
-      <WorkflowListDialog
-        open={listDialogOpen}
-        onOpenChange={setListDialogOpen}
-        onLoadWorkflow={handleLoadWorkflow}
-      />
+        <WorkflowListDialog
+          open={listDialogOpen}
+          onOpenChange={setListDialogOpen}
+          onLoadWorkflow={handleLoadWorkflow}
+        />
 
-      {/* Human-in-Loop Approval Modal */}
-      <ApprovalModal
-        open={showApprovalModal}
-        onOpenChange={setShowApprovalModal}
-        interruptInfo={humanInputRequired}
-        onDecision={handleHumanDecision}
-      />
+        {/* 导入工作流对话框 */}
+        <ImportWorkflowDialog
+          open={importDialogOpen}
+          onOpenChange={setImportDialogOpen}
+          onImport={handleImportData}
+          existingWorkflows={existingWorkflows}
+        />
+
+        {/* Human-in-Loop Approval Modal */}
+        <ApprovalModal
+          open={showApprovalModal}
+          onOpenChange={setShowApprovalModal}
+          interruptInfo={humanInputRequired}
+          onDecision={handleHumanDecision}
+        />
 
       {/* 全局错误提示 */}
       {showGlobalError && (

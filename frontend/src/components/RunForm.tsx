@@ -29,9 +29,6 @@ export const RunForm: React.FC<RunFormProps> = ({ inputs, onSubmit, onCancel }) 
                   <Heading size="4" className="text-[var(--color-text-primary)]">
                     Run Workflow
                   </Heading>
-                  <Badge size="1" variant="soft" color="blue">
-                    <Text size="1">Execute</Text>
-                  </Badge>
                 </div>
                 <Text size="2" className="text-[var(--color-text-secondary)]">
                   Configure input parameters and start execution
@@ -55,7 +52,6 @@ export const RunForm: React.FC<RunFormProps> = ({ inputs, onSubmit, onCancel }) 
                 title="No Inputs Required"
                 description="This workflow doesn't require any input parameters"
                 icon={<PlayIcon />}
-                badge={{ text: "Ready", color: "green" }}
               >
                 <div className="text-center py-4">
                   <Text size="2" className="text-[var(--color-text-secondary)]">
@@ -68,7 +64,6 @@ export const RunForm: React.FC<RunFormProps> = ({ inputs, onSubmit, onCancel }) 
                 title="Input Parameters"
                 description="Provide values for the workflow input parameters"
                 icon={<PlayIcon />}
-                badge={{ text: `${inputs.length} inputs`, color: "blue" }}
               >
                                 <div className="space-y-4">
                   {inputs.map((input) => (

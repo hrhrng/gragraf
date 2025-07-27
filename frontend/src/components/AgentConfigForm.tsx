@@ -73,7 +73,7 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
 
   const handleVariableSelect = (field: keyof FormData, variable: string) => {
     const currentValue = watch(field) as string;
-    const newValue = currentValue + `{{${variable}}}`;
+    const newValue = currentValue + variable;
     setValue(field, newValue);
   };
 
@@ -144,7 +144,6 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
         title="系统提示词"
         description="定义AI助手的角色和行为规范"
         icon={<GearIcon />}
-        badge={{ text: '系统级', color: 'blue' }}
       >
         <ConfigTextAreaField
           label="System Prompt"
@@ -166,8 +165,8 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
             </Text>
             <div className="flex flex-wrap gap-1">
               {variableUsage.systemVars.map((variable) => (
-                <Badge key={variable} size="1" variant="soft" color="blue">
-                  <Text size="1" className="font-mono">{variable}</Text>
+                <Badge key={variable} size="1" variant="soft" color="blue" className="max-w-xs">
+                  <Text size="1" className="font-mono truncate overflow-hidden">{variable}</Text>
                 </Badge>
               ))}
             </div>
@@ -180,7 +179,6 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
         title="用户提示词"
         description="具体的任务指令和用户输入"
         icon={<ChatBubbleIcon />}
-        badge={{ text: '用户级', color: 'green' }}
       >
         <ConfigTextAreaField
           label="User Prompt"
@@ -202,8 +200,8 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
             </Text>
             <div className="flex flex-wrap gap-1">
               {variableUsage.userVars.map((variable) => (
-                <Badge key={variable} size="1" variant="soft" color="green">
-                  <Text size="1" className="font-mono">{variable}</Text>
+                <Badge key={variable} size="1" variant="soft" color="green" className="max-w-xs">
+                  <Text size="1" className="font-mono truncate overflow-hidden">{variable}</Text>
                 </Badge>
               ))}
             </div>
@@ -223,8 +221,8 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
           <div className="space-y-3">
             <div className="flex flex-wrap gap-1">
               {variableUsage.totalVars.map((variable) => (
-                <Badge key={variable} size="1" variant="soft" color="violet">
-                  <Text size="1" className="font-mono">{variable}</Text>
+                <Badge key={variable} size="1" variant="soft" color="violet" className="max-w-xs">
+                  <Text size="1" className="font-mono truncate overflow-hidden">{variable}</Text>
                 </Badge>
               ))}
             </div>
