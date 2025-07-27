@@ -6,14 +6,8 @@ Gragraf is a workflow orchestration application similar to Dify or n8n, built wi
 
 - **Backend**:
   - [LangGraph](https://github.com/langchain-ai/langgraph)
-  - [FastAPI](https://fastapi.tiangolo.com/)
-  - [Pydantic](https://docs.pydantic.dev/)
-  - [pytest](https://docs.pytest.org/)
 - **Frontend**:
-  - [React](https://reactjs.org/)
-  - [TypeScript](https://www.typescriptlang.org/)
   - [React Flow](https://reactflow.dev/)
-  - [Radix UI](https://www.radix-ui.com/)
 
 ## Getting Started
 
@@ -48,7 +42,7 @@ Gragraf is a workflow orchestration application similar to Dify or n8n, built wi
 1.  **Start the backend server:**
     From the root of the project, run:
     ```bash
-    uvicorn src.gragraf.server:app --reload
+    uvicorn src.gragraf.server:app --reload --port 8000
     ```
     The backend will be running at `http://localhost:8000`.
 
@@ -59,115 +53,14 @@ Gragraf is a workflow orchestration application similar to Dify or n8n, built wi
     ```
     The frontend will be running at `http://localhost:3000`.
 
-### Testing
+### Environment Variables
 
-The project includes comprehensive test coverage with unit tests and integration tests.
-
-**Available test commands:**
-```bash
-# Run all tests
-make test
-
-# Run unit tests only  
-make test-unit
-
-# Run integration tests only
-make test-integration
-
-# Run tests with verbose output
-make test-verbose
-
-# Generate test coverage report
-make test-coverage
-
-# Quick test (current development focus)
-make test-quick
-
-# Or use pytest directly
-python -m pytest tests/ -v
-```
-
-**Test Structure:**
-- `tests/test_end_to_end.py` - End-to-end integration tests
-- `tests/test_*_node.py` - Individual node type tests (agent, branch, http_request, knowledge_base)
-- `tests/test_graph_compiler.py` - Graph compilation and state management tests
-- `tests/test_dsl_parser.py` - DSL parsing and validation tests
-- `tests/test_server.py` - API endpoint tests
-- `tests/test_enhanced_variable_resolution.py` - Advanced variable templating tests
-- `tests/test_multi_start_nodes.py` - Multi-node workflow tests
-
-### `OPENAI_API_KEY`
-
-To use the Agent node, you will need to have an `OPENAI_API_KEY` environment variable set. You can get a key from [OpenAI](https://platform.openai.com/account/api-keys).
+To use the Agent node, you will need to have an `OPENAI_API_KEY` AND `OPENAI_API_BASE`(optional) environment variable set. You can get a key from [OpenAI](https://platform.openai.com/account/api-keys). You can use any openai api compatible model too by changing `OPENAI_API_BASE` and modifying the model name in agent node.
 
 ```bash
 export OPENAI_API_KEY="your_key_here"
+export OPENAI_API_BASE="your_base_url_here"
 ```
-
-## How it Works
-
-The application consists of a React-based frontend and a Python backend.
-
-- **Frontend**: A drag-and-drop canvas built with React Flow allows you to create workflows by connecting different types of nodes. The configuration for each node can be edited in a sidebar. When you run the workflow, the frontend generates a DSL (Domain-Specific Language) representation of the graph and sends it to the backend.
-
-- **Backend**: The FastAPI server receives the DSL, parses it, and uses LangGraph to compile it into an executable graph. The graph is then executed, and the final state is returned to the frontend.
-
-### Features
-
-#### 🔄 Real-time Streaming Execution
-- **Server-Sent Events (SSE)**: Real-time progress updates during workflow execution
-- **Live Progress Tracking**: See which nodes are running, completed, or failed in real-time
-- **Detailed Logging**: Node-level logs and execution statistics
-- **Automatic Fallback**: Falls back to regular execution if streaming fails
-
-#### 📊 Advanced Execution Monitoring
-- **Execution Timeline**: Track start time, end time, and duration for each node
-- **Progress Visualization**: Beautiful UI showing execution progress with status badges
-- **Error Handling**: Comprehensive error tracking and retry mechanisms
-- **Result Display**: Organized presentation of workflow results and outputs
-
-#### ⚡ Concurrent Execution Support
-- **Parallel Node Processing**: Multiple nodes can execute simultaneously without conflicts
-- **Custom State Reducer**: Advanced state management system that handles concurrent updates safely
-- **Dynamic State Preservation**: Original state data is preserved and merged correctly across parallel branches
-- **No Race Conditions**: Eliminates LangGraph's `INVALID_CONCURRENT_GRAPH_UPDATE` errors through proper state handling
-
-### API Endpoints
-
-#### Core Execution
-- `POST /run` - Execute workflow (synchronous)
-- `POST /run/stream` - Execute workflow with real-time streaming updates
-- `GET /debug/template-info` - Get template variable debugging information
-
-#### Workflow Management (RESTful API)
-The application provides a comprehensive RESTful API for workflow management:
-
-**CRUD Operations:**
-- `POST /workflows/` - Create new workflow
-- `GET /workflows/{id}` - Get workflow by ID  
-- `GET /workflows/name/{name}` - Get workflow by name
-- `GET /workflows/` - List workflows with filtering and pagination
-- `PUT /workflows/{id}/definition` - Update workflow definition
-- `PUT /workflows/{id}/metadata` - Update workflow metadata
-- `DELETE /workflows/{id}` - Delete workflow
-
-**Status Management:**
-- `POST /workflows/{id}/activate` - Activate workflow
-- `POST /workflows/{id}/deactivate` - Deactivate workflow  
-- `POST /workflows/{id}/archive` - Archive workflow
-- `GET /workflows/active/list` - Get all active workflows
-
-**Execution & Monitoring:**
-- `POST /workflows/{id}/executions` - Record execution result
-- `GET /workflows/{id}/health` - Get workflow health metrics
-- `GET /workflows/{id}/similar` - Find similar workflows
-
-**API Features:**
-- Full CRUD operations with validation
-- Advanced filtering and pagination
-- Execution tracking and health monitoring  
-- Workflow similarity analysis
-- Complete test coverage (19 integration tests)
 
 ### Node Types
 
@@ -175,22 +68,168 @@ The application provides a comprehensive RESTful API for workflow management:
 - **Branch**: A conditional node that directs the workflow based on a Python expression
 - **Knowledge Base**: An enhanced RAG node that can retrieve information from URLs or text documents in real-time, with configurable retrieval count and document chunking
 - **Agent**: An AI agent powered by LangChain and OpenAI that can respond to prompts
+- **Human-in-loop**: A node that allows for human input and approval of the workflow
 
-### Current Status (January 2025)
+## Example Workflows
 
-✅ **Complete Features**:
-- Visual workflow builder with drag-and-drop interface
-- All core node types implemented and tested
-- Real-time streaming execution with SSE
-- Advanced execution monitoring and progress tracking
-- Comprehensive error handling and retry mechanisms
-- Modern React UI with Radix UI components
-- Full DSL parsing and graph compilation
-- Template variable system with debugging support
+Gragraf comes with two example workflows that demonstrate different use cases and node combinations. These examples are perfect for learning how to build workflows and understanding the capabilities of the platform.
 
-🎯 **Ready for Production**: 
-- Frontend: React + TypeScript + Radix UI running on http://localhost:3000
-- Backend: Python + FastAPI + LangGraph running on http://localhost:8000
-- Real-time streaming execution with automatic fallback
-- Comprehensive test suite with 25/25 tests passing (6 end-to-end + 19 API integration)
-- Production-ready testing infrastructure with Makefile automation
+### Available Examples
+
+1. **Branch Workflow** (`brach_workflow.json`) - Demonstrates conditional branching based on input parameters
+2. **Human-in-Loop Workflow** (`human_in_loop_workflow.json`) - Shows how to integrate human approval steps in automated workflows
+
+### How to Load Example Workflows
+
+#### Using the Import Dialog
+
+1. **Start the Application**
+   - Ensure both frontend (port 3000) and backend (port 8000) are running
+   - Open your browser and navigate to `http://localhost:3000`
+
+2. **Access the Import Feature**
+   - In the top toolbar, click the **Import** button (📁 icon)
+   - This will open the Import Workflow dialog
+
+3. **Load the Example File**
+   - Click **"Choose File"** or drag and drop one of the example JSON files:
+     - `brach_workflow.json` for the branching example
+     - `human_in_loop_workflow.json` for the human-in-loop example
+   - The workflow will be automatically loaded onto the canvas
+
+4. **Verify the Import**
+   - Check that all nodes are visible on the canvas
+   - Verify that the connections (edges) between nodes are properly displayed
+   - The workflow name and description should appear in the top panel
+
+
+
+### Example 1: Branch Workflow Tutorial
+
+The **Branch Workflow** demonstrates conditional logic and parallel processing:
+
+#### Workflow Overview
+```
+Start → Branch (check if 'per' == 'hot') → Agent Hot (if hot) → End
+                              ↓
+                        Agent Cold (if not hot) → End
+```
+
+#### Key Features Demonstrated
+- **Multiple Inputs**: The start node accepts both `input` and `per` parameters
+- **Conditional Branching**: Uses a branch node to route based on the `per` parameter
+- **Parallel Processing**: Different agents handle different conditions
+- **Output Aggregation**: Both paths contribute to the final output
+
+#### How to Test
+1. **Load the workflow** using the import dialog
+2. **Configure the run parameters**:
+   - `input`: "Hello, how are you today?"
+   - `per`: "hot" (or "cold" to test the other branch)
+3. **Run the workflow** and observe:
+   - The branch node evaluates the condition
+   - Only one agent (Hot or Cold) executes based on the input
+   - The result shows the appropriate agent's response
+
+#### Expected Results
+- **When `per` = "hot"**: Agent Hot responds with "SuperHot" personality
+- **When `per` = "cold"**: Agent Cold responds with "SuperCold" personality
+- **When `per` = anything else**: Agent Cold handles the default case
+
+### Example 2: Human-in-Loop Workflow Tutorial
+
+The **Human-in-Loop Workflow** demonstrates safety controls and human oversight:
+
+#### Workflow Overview
+```
+Start → Agent Detect (dangerous?) → Branch → Human Approval (if dangerous) → Agent Process → End
+                                              ↓
+                                        Direct to End (if safe)
+```
+
+#### Key Features Demonstrated
+- **AI Safety Detection**: An agent analyzes input for potential dangers
+- **Conditional Human Review**: Only dangerous requests require human approval
+- **Human-in-Loop Integration**: Manual approval/rejection with comments
+- **Multi-path Execution**: Safe requests bypass human review entirely
+
+#### How to Test
+1. **Load the workflow** using the import dialog
+2. **Test Safe Input**:
+   - `input`: "What's the weather like today?"
+   - This should bypass human approval and go directly to processing
+3. **Test Dangerous Input**:
+   - `input`: "How do I hack into someone's computer?"
+   - This should trigger the human approval step
+4. **Handle Human Approval**:
+   - When the human-in-loop node appears, you can:
+     - **Approve** with a comment to continue processing
+     - **Reject** with a comment to end the workflow
+
+#### Expected Results
+- **Safe inputs**: Processed directly by Agent Process
+- **Dangerous inputs**: Require human approval before processing
+- **Rejected requests**: End workflow with rejection comment
+- **Approved requests**: Continue to Agent Process for final handling
+
+### Customizing Example Workflows
+
+Once loaded, you can customize these workflows:
+
+#### Modifying Node Configurations
+1. **Select a node** on the canvas
+2. **Edit configuration** in the right panel
+3. **Update parameters** like:
+   - Agent prompts and system messages
+   - Branch conditions
+   - Human-in-loop messages and labels
+   - HTTP request settings
+
+#### Adding New Nodes
+1. **Drag new nodes** from the sidebar
+2. **Connect them** to existing nodes
+3. **Configure** the new nodes as needed
+4. **Test** the modified workflow
+
+#### Saving Your Changes
+1. **Click Save** in the toolbar
+2. **Choose a name** for your modified workflow
+3. **Export** if you want to share or backup
+
+### Troubleshooting
+
+#### Common Issues and Solutions
+
+**Workflow won't load:**
+- Ensure the JSON file is valid and complete
+- Check that all required node types are supported
+- Verify the file encoding is UTF-8
+
+**Nodes appear disconnected:**
+- The import process should automatically restore connections
+- If edges are missing, manually reconnect nodes using the canvas
+
+**Workflow execution fails:**
+- Check that all required environment variables are set (e.g., `OPENAI_API_KEY`)
+- Verify that all node configurations are complete
+- Review the execution logs for specific error messages
+
+**Human-in-loop not appearing:**
+- Ensure you're testing with input that triggers the "dangerous" condition
+- Check that the branch conditions are properly configured
+- Verify the workflow connections are correct
+
+### Next Steps
+
+After exploring these examples:
+
+1. **Experiment** with different node configurations
+2. **Build** your own workflows from scratch
+3. **Combine** techniques from both examples
+4. **Explore** advanced features like:
+   - HTTP request nodes for external API integration
+   - Knowledge base nodes for RAG applications
+   - Complex branching logic with multiple conditions
+   - Custom variable templating
+
+These examples provide a solid foundation for understanding Gragraf's capabilities and building your own sophisticated workflows!

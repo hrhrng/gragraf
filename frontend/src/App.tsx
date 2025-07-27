@@ -367,7 +367,7 @@ function App() {
         };
 
         // 使用 fetch 的 ReadableStream 来处理流式响应
-        const response = await fetch('/run/stream', {
+        const response = await fetch('/api/run/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
@@ -546,7 +546,7 @@ function App() {
   const executeRegular = async (dsl: any) => {
     try {
       const startTime = new Date().toISOString();
-      const response = await fetch('/run', {
+      const response = await fetch('/api/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dsl),
@@ -1114,28 +1114,31 @@ function App() {
           </div>
         )}
 
-        {/* Right Panel */}
+        {/* Right Panel - 已移除执行结果显示，现在只作为占位符 */}
         <RightPanel
           nodes={nodes}
           edges={edges}
           selectedNode={selectedNode}
           onConfigChange={onConfigChange}
-          result={result}
-          isLoading={isLoading}
-          onRetry={handleRetry}
-          showRunForm={showRunForm}
-          runFormInputs={startNodeInputs}
-          onRunSubmit={handleRunSubmit}
-          onRunCancel={handleRunCancel}
+          result={null}
+          isLoading={false}
+          onRetry={() => {}}
         />
         
-        {/* Configuration Panel - 浮窗 */}
+        {/* Configuration Panel - 浮窗，支持节点配置、运行工作流和执行结果 */}
         <ConfigPanel 
           nodes={nodes}
           edges={edges}
           selectedNode={selectedNode} 
           onConfigChange={onConfigChange}
           onNodeChange={onNodeChange}
+          showRunForm={showRunForm}
+          runFormInputs={startNodeInputs}
+          onRunSubmit={handleRunSubmit}
+          onRunCancel={handleRunCancel}
+          result={result}
+          isLoading={isLoading}
+          onRetry={handleRetry}
         />
         
         {/* macOS Dock Style Toolbar */}

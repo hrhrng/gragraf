@@ -5,8 +5,7 @@ import { NodeData } from '../types';
 import { ConfigFormBase, ConfigSection } from './common/ConfigFormBase';
 import { 
   ConfigTextField, 
-  ConfigTextAreaField,
-  ConfigSelectField
+  ConfigTextAreaField
 } from './common/ConfigFormFields';
 import { 
   PersonIcon, 
@@ -14,7 +13,7 @@ import {
   ChatBubbleIcon,
   MagicWandIcon
 } from '@radix-ui/react-icons';
-import { Badge, Text } from '@radix-ui/themes';
+import { Badge, Text, Select, TextField } from '@radix-ui/themes';
 
 interface AgentConfigFormProps {
   node: Node<NodeData>;
@@ -91,12 +90,8 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
   }, [watch('system_prompt'), watch('user_prompt')]);
 
   const modelOptions = [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini (推荐)' },
-    { value: 'gpt-4o', label: 'GPT-4o' },
-    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-    { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
-    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
+    { value: 'gpt-4o-mini', label: 'gpt-4o-mini' },
+    { value: 'gpt-4o', label: 'gpt-4o' },
   ];
 
   return (
@@ -112,14 +107,45 @@ export const AgentConfigForm: React.FC<AgentConfigFormProps> = ({
         description="配置AI模型和基本参数"
         icon={<MagicWandIcon />}
       >
-        <ConfigSelectField
-          label="AI模型"
-          value={watch('model_name')}
-          onChange={(value) => setValue('model_name', value)}
-          options={modelOptions}
-          required
-          helpText="选择要使用的AI模型"
-        />
+        <div className="space-y-2">
+          <Text size="2" weight="medium" className="text-[var(--color-text-primary)]">
+            AI模型 *
+          </Text>
+          <div className="flex gap-2">
+            <Select.Root 
+              value={modelOptions.some(opt => opt.value === watch('model_name')) ? watch('model_name') : 'custom'} 
+              onValueChange={(value) => {
+                if (value === 'custom') {
+                  // 如果选择自定义，保持当前值不变
+                } else {
+                  setValue('model_name', value);
+                }
+              }}
+            >
+              <Select.Trigger className="flex-1" placeholder="选择模型" />
+              <Select.Content>
+                {modelOptions.map((option) => (
+                  <Select.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Item>
+                ))}
+                <Select.Separator />
+                <Select.Item value="custom">自定义模型...</Select.Item>
+              </Select.Content>
+            </Select.Root>
+            {!modelOptions.some(opt => opt.value === watch('model_name')) && (
+              <TextField.Root
+                className="flex-1"
+                placeholder="输入模型名称"
+                value={watch('model_name')}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue('model_name', e.target.value)}
+              />
+            )}
+          </div>
+          <Text size="1" className="text-[var(--color-text-secondary)]">
+            选择内置模型或输入自定义模型名称
+          </Text>
+        </div>
 
         <ConfigTextField
           label="Temperature"

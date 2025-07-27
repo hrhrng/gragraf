@@ -33,8 +33,8 @@ export interface WorkflowListResponse {
   total_pages: number;
 }
 
-// 使用相对路径，前端代理会转发到后端
-const API_BASE = '';
+// 使用/api前缀，前端代理会重写并转发到后端
+const API_BASE = '/api';
 
 class WorkflowApiService {
   // 创建工作流

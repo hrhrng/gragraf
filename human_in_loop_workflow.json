@@ -1,0 +1,191 @@
+{
+    "name": "human-in-loop",
+    "description": "",
+    "nodes": [
+      {
+        "id": "start_1",
+        "type": "start",
+        "position": {
+          "x": 200,
+          "y": 200
+        },
+        "data": {
+          "label": "start",
+          "nodeType": "start",
+          "config": {
+            "inputs": [
+              {
+                "name": "input"
+              }
+            ]
+          }
+        },
+        "width": 176,
+        "height": 76
+      },
+      {
+        "id": "end_1",
+        "type": "end",
+        "position": {
+          "x": 1500,
+          "y": 200
+        },
+        "data": {
+          "label": "end",
+          "nodeType": "end",
+          "config": {
+            "outputs": [
+              {
+                "name": "result",
+                "value": "{{agent_process_output}}"
+              },
+              {
+                "name": "comment",
+                "value": "{{humanInLoop_dangerous_aprove_output}}"
+              }
+            ]
+          }
+        },
+        "width": 176,
+        "height": 76
+      },
+      {
+        "id": "agent_detect",
+        "type": "agent",
+        "position": {
+          "x": 460,
+          "y": 200
+        },
+        "data": {
+          "label": "agent",
+          "nodeType": "agent",
+          "config": {
+            "model_name": "gpt-4o-mini",
+            "temperature": 0.7,
+            "system_prompt": "You are a helpful assistant.\nDetect whether the user question is dangerous.\nReturn `dangerous` or `safe`.",
+            "user_prompt": "{{input}}",
+            "output_name": ""
+          }
+        },
+        "width": 176,
+        "height": 76
+      },
+      {
+        "id": "branch_is_dangerous",
+        "type": "branch",
+        "position": {
+          "x": 720,
+          "y": 200
+        },
+        "data": {
+          "label": "branch",
+          "nodeType": "branch",
+          "config": {
+            "conditions": [
+              {
+                "condition": "'{{input}}' == 'dangerous'",
+                "variable": "input",
+                "operator": "==",
+                "value": "dangerous"
+              },
+              {
+                "condition": "'{{input}}' == 'safe'",
+                "variable": "input",
+                "operator": "==",
+                "value": "safe"
+              }
+            ],
+            "hasElse": false
+          }
+        },
+        "width": 176,
+        "height": 144
+      },
+      {
+        "id": "agent_process",
+        "type": "agent",
+        "position": {
+          "x": 1240,
+          "y": 200
+        },
+        "data": {
+          "label": "agent",
+          "nodeType": "agent",
+          "config": {
+            "model_name": "gpt-4o-mini",
+            "temperature": 0.7,
+            "system_prompt": "You are a helpful assistant.",
+            "user_prompt": "{{input}}",
+            "output_name": ""
+          }
+        },
+        "width": 176,
+        "height": 76
+      },
+      {
+        "id": "humanInLoop_dangerous_aprove",
+        "type": "humanInLoop",
+        "position": {
+          "x": 980,
+          "y": 200
+        },
+        "data": {
+          "label": "human_in_loop",
+          "nodeType": "humanInLoop",
+          "config": {
+            "message": "Please review and approve this action",
+            "input_label": "Comments",
+            "approval_label": "Approve",
+            "rejection_label": "Reject",
+            "require_comment": true
+          }
+        },
+        "width": 176,
+        "height": 144
+      }
+    ],
+    "edges": [
+      {
+        "id": "reactflow__edge-agent_detect-branch_4",
+        "source": "agent_detect",
+        "target": "branch_is_dangerous",
+        "sourceHandle": null
+      },
+      {
+        "id": "reactflow__edge-start_1-agent_detect",
+        "source": "start_1",
+        "target": "agent_detect",
+        "sourceHandle": null
+      },
+      {
+        "id": "reactflow__edge-branch_4branch-0-humanInLoop_6",
+        "source": "branch_is_dangerous",
+        "target": "humanInLoop_dangerous_aprove",
+        "sourceHandle": "branch-0"
+      },
+      {
+        "id": "reactflow__edge-branch_4branch-1-agent_5",
+        "source": "branch_is_dangerous",
+        "target": "agent_process",
+        "sourceHandle": "branch-1"
+      },
+      {
+        "id": "reactflow__edge-agent_process-end_1",
+        "source": "agent_process",
+        "target": "end_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "reactflow__edge-humanInLoop_dangerous_aproveapprove-agent_process",
+        "source": "humanInLoop_dangerous_aprove",
+        "target": "agent_process",
+        "sourceHandle": "approve"
+      },
+      {
+        "id": "reactflow__edge-humanInLoop_dangerous_aprovereject-end_1",
+        "source": "humanInLoop_dangerous_aprove",
+        "target": "end_1",
+        "sourceHandle": "reject"
+      }
+    ]
+  }

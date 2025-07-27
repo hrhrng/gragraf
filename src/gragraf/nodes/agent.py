@@ -11,7 +11,7 @@ import asyncio
 logger = logging.getLogger(__name__)
 
 class AgentConfig(BaseModel):
-    model_name: str = "gpt-4o"
+    model_name: str = "gpt-4o-mini"
     temperature: float = Field(0.7, description="The temperature for the LLM.")
     system_prompt: str = "You are a helpful assistant."
     user_prompt: str = ""

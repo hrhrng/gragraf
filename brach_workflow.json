@@ -1,0 +1,161 @@
+{
+    "name": "brach",
+    "description": "",
+    "nodes": [
+      {
+        "id": "start_1",
+        "type": "start",
+        "position": {
+          "x": 41.91345995045418,
+          "y": 114.85945499587118
+        },
+        "data": {
+          "label": "start",
+          "nodeType": "start",
+          "config": {
+            "inputs": [
+              {
+                "name": "input"
+              },
+              {
+                "name": "per"
+              }
+            ]
+          }
+        },
+        "width": 176,
+        "height": 76
+      },
+      {
+        "id": "end_1",
+        "type": "end",
+        "position": {
+          "x": 800,
+          "y": 200
+        },
+        "data": {
+          "label": "end",
+          "nodeType": "end",
+          "config": {
+            "outputs": [
+              {
+                "name": "agenthot",
+                "value": "{{agent_hot_output}}"
+              },
+              {
+                "name": "agentcold",
+                "value": "{{agent_cold_output}}"
+              }
+            ]
+          }
+        },
+        "width": 176,
+        "height": 76
+      },
+      {
+        "id": "branch_3",
+        "type": "branch",
+        "position": {
+          "x": 292.1268373245251,
+          "y": 92.11179689587534
+        },
+        "data": {
+          "label": "branch",
+          "nodeType": "branch",
+          "config": {
+            "conditions": [
+              {
+                "condition": "'{{per}}' == 'hot'",
+                "variable": "per",
+                "operator": "==",
+                "value": "hot"
+              }
+            ],
+            "hasElse": true
+          }
+        },
+        "width": 176,
+        "height": 144
+      },
+      {
+        "id": "agent_hot",
+        "type": "agent",
+        "position": {
+          "x": 538,
+          "y": 93.18150289017342
+        },
+        "data": {
+          "label": "agent",
+          "nodeType": "agent",
+          "config": {
+            "model_name": "gpt-4o-mini",
+            "temperature": 0.7,
+            "system_prompt": "Your name is SuperHot",
+            "user_prompt": "{{input}}",
+            "output_name": ""
+          }
+        },
+        "width": 176,
+        "height": 76
+      },
+      {
+        "id": "agent_cold",
+        "type": "agent",
+        "position": {
+          "x": 536.6825879100701,
+          "y": 229.2472336911643
+        },
+        "data": {
+          "label": "agent",
+          "nodeType": "agent",
+          "config": {
+            "model_name": "gpt-4o-mini",
+            "temperature": 0.7,
+            "system_prompt": "Your name is SuperCold",
+            "user_prompt": "{{input}}",
+            "output_name": ""
+          }
+        },
+        "width": 176,
+        "height": 76
+      }
+    ],
+    "edges": [
+      {
+        "id": "reactflow__edge-start_1-branch_3",
+        "source": "start_1",
+        "target": "branch_3",
+        "sourceHandle": null
+      },
+      {
+        "id": "reactflow__edge-branch_3condition-0-agent_4",
+        "source": "branch_3",
+        "target": "agent_hot",
+        "sourceHandle": "condition-0"
+      },
+      {
+        "id": "reactflow__edge-agent_4-end_1",
+        "source": "agent_hot",
+        "target": "end_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "reactflow__edge-branch_3else-agent_5",
+        "source": "branch_3",
+        "target": "agent_cold",
+        "sourceHandle": "else"
+      },
+      {
+        "id": "reactflow__edge-agent_cold-end_1",
+        "source": "agent_cold",
+        "target": "end_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "reactflow__edge-branch_3branch-0-agent_hot",
+        "source": "branch_3",
+        "target": "agent_hot",
+        "sourceHandle": "branch-0"
+      }
+    ]
+  }
